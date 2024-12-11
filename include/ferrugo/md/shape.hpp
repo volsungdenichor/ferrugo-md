@@ -77,7 +77,7 @@ struct shape_t
         static_assert(sizeof...(args) == D, "all dimensions required");
     }
 
-    const dim_t& dim(std::size_t d) const
+    auto dim(std::size_t d) const -> const dim_t&
     {
         return m_dims[d];
     }
@@ -93,12 +93,12 @@ struct shape_t
         {
         }
 
-        location_type deref() const
+        auto deref() const -> location_type
         {
             return m_loc;
         }
 
-        bool is_equal(const iter& other) const
+        auto is_equal(const iter& other) const -> bool
         {
             return m_loc == other.m_loc;
         }

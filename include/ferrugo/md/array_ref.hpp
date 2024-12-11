@@ -27,27 +27,27 @@ struct array_ref
     }
 
     template <class T_ = T, class = std::enable_if_t<!std::is_const_v<T_>>>
-    array_ref& operator=(T_ value)
+    auto operator=(T_ value) -> array_ref&
     {
         std::fill(begin(), end(), value);
         return *this;
     }
 
-    array_ref& operator=(std::initializer_list<value_type> values)
+    auto operator=(std::initializer_list<value_type> values) -> array_ref&
     {
         std::copy(std::begin(values), std::end(values), begin());
         return *this;
     }
 
     template <std::size_t Dim>
-    array_ref<T, Dim> sub(const location_type& this_loc, dim_array_t<Dim> new_shape) const
+    auto sub(const location_type& this_loc, dim_array_t<Dim> new_shape) const -> array_ref<T, Dim>
     {
         T* new_ptr = get(this_loc);
         return { new_ptr, shape_t<Dim>{ std::move(new_shape) } };
     }
 
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
-    array_ref<T, D - 1> slice(index_t dim, index_t n) const
+    auto slice(index_t dim, index_t n) const -> array_ref<T, D - 1>
     {
         location_type loc = {};
         loc[dim] = n;
@@ -60,24 +60,24 @@ struct array_ref
     }
 
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
-    array_ref<T, D - 1> operator[](index_t n) const
+    auto operator[](index_t n) const -> array_ref<T, D_ - 1>
     {
         return slice(0, n);
     }
 
     template <std::size_t D_ = D, std::enable_if_t<(D_ == 1), int> = 0>
-    reference operator[](index_t n) const
+    auto operator[](index_t n) const -> reference
     {
         return (*this)[location_t<1>{ n }];
     }
 
-    reference operator[](const location_type& loc) const
+    auto operator[](const location_type& loc) const -> reference
     {
         return *get(loc);
     }
 
     template <std::size_t D_ = D, class = std::enable_if_t<(D_ > 0)>>
-    array_ref<T, 1> operator[](const location_t<D_ - 1>& loc) const
+    auto operator[](const location_t<D_ - 1>& loc) const -> array_ref<T, 1>
     {
         location_type this_loc = {};
         std::copy(std::begin(loc), std::end(loc), std::begin(this_loc));
@@ -85,13 +85,7 @@ struct array_ref
         return sub(this_loc, new_shape);
     }
 
-    // template <index_t... I>
-    // auto operator()(I... indices) const
-    // {
-    //     return (*this)[location_t
-    // }
-
-    pointer get(const location_type& loc) const
+    auto get(const location_type& loc) const -> pointer
     {
         return reinterpret_cast<T*>(m_ptr + offset(m_shape, loc));
     }
@@ -106,7 +100,7 @@ struct array_ref
         return os;
     }
 
-    const shape_type& shape() const
+    auto shape() const -> const shape_type&
     {
         return m_shape;
     }
@@ -122,7 +116,7 @@ struct array_ref
         {
         }
 
-        T& deref() const
+        auto deref() const -> T&
         {
             return *m_self->get(*m_iter);
         }
@@ -132,7 +126,7 @@ struct array_ref
             ++m_iter;
         }
 
-        bool is_equal(const iter& other) const
+        auto is_equal(const iter& other) const -> bool
         {
             return m_iter == other.m_iter;
         }
@@ -168,7 +162,7 @@ struct slices_fn
         {
         }
 
-        array_ref<T, D - 1> deref() const
+        auto deref() const -> array_ref<T, D - 1>
         {
             return m_self->slice(m_dim, m_n);
         }
@@ -178,7 +172,7 @@ struct slices_fn
             m_n += offset;
         }
 
-        std::ptrdiff_t distance_to(const iter& other) const
+        auto distance_to(const iter& other) const -> std::ptrdiff_t
         {
             return other.m_n - m_n;
         }
@@ -223,7 +217,7 @@ struct subslices_fn
         {
         }
 
-        array_ref<T, 1> deref() const
+        auto deref() const -> array_ref<T, 1>
         {
             return (*m_self)[*m_inner];
         }
@@ -233,7 +227,7 @@ struct subslices_fn
             ++m_inner;
         }
 
-        bool is_equal(const iter& other) const
+        auto is_equal(const iter& other) const -> bool
         {
             return m_inner == other.m_inner;
         }
