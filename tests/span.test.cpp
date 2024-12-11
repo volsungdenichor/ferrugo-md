@@ -49,14 +49,14 @@ TEST_CASE("array_ref 2d", "[md]")
 using image = md::array_ref<std::byte, 3>;
 using image_channel = md::array_ref<std::byte, 2>;
 
-auto create_image_shape(md::index_t w, md::index_t h) -> image::shape_type
+auto create_image_shape(md::index_t h, md::index_t w) -> image::shape_type
 {
-    return image::shape_type(md::dim_t{ w, 3 }, md::dim_t{ h, w * 3 }, md::dim_t{ 3, 1 });
+    return image::shape_type(md::dim_t{ h, 3 * w }, md::dim_t{ w, 3 }, md::dim_t{ 3, 1 });
 }
 
 TEST_CASE("array_ref", "[md]")
 {
-    const auto shape = create_image_shape(5, 4);
+    const auto shape = create_image_shape(4, 6);
     std::vector<std::byte> v;
     v.resize(md::volume(shape));
     const auto a = image{ v.data(), shape };
@@ -64,9 +64,9 @@ TEST_CASE("array_ref", "[md]")
     a[md::location_t<2>(2, 2)] = { std::byte(25), std::byte(35), std::byte(45) };
     a[md::location_t<2>(3, 1)] = { std::byte(99), std::byte(77), std::byte(55) };
 
-    for (md::array_ref<std::byte, 2> x : md::slices(1)(a))
+    for (md::array_ref<std::byte, 2> x : md::slices(0)(a))
     {
-        std::cout << "ROW\n";
+        std::cout << "ROW " << x << "\n";
         for (md::array_ref<std::byte, 1> y : md::slices(0)(x))
         {
             std::cout << "  " << y << "\n";
