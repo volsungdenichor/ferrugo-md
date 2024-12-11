@@ -12,14 +12,17 @@ using byte = unsigned char;
 template <class T, std::size_t D>
 struct array_ref
 {
+    using value_type = std::remove_const_t<T>;
     using shape_type = shape_t<D>;
     using shape_iterator = typename shape_type::iterator;
     using location_type = location_t<D>;
+    using reference = T&;
+    using pointer = T*;
 
     byte* m_ptr;
     shape_type m_shape;
 
-    array_ref(T* ptr, shape_type shape) : m_ptr{ reinterpret_cast<byte*>(ptr) }, m_shape{ std::move(shape) }
+    array_ref(pointer ptr, shape_type shape) : m_ptr{ reinterpret_cast<byte*>(ptr) }, m_shape{ std::move(shape) }
     {
     }
 
@@ -30,39 +33,45 @@ struct array_ref
         return *this;
     }
 
+    array_ref& operator=(std::initializer_list<value_type> values)
+    {
+        std::copy(std::begin(values), std::end(values), begin());
+        return *this;
+    }
+
     template <std::size_t Dim>
-    array_ref<T, Dim> sub(const location_type& this_loc, std::array<dim_t, Dim> new_shape) const
+    array_ref<T, Dim> sub(const location_type& this_loc, dim_array_t<Dim> new_shape) const
     {
         T* new_ptr = get(this_loc);
         return { new_ptr, shape_t<Dim>{ std::move(new_shape) } };
     }
 
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
-    array_ref<T, D - 1> slice(std::size_t d, std::ptrdiff_t n) const
+    array_ref<T, D - 1> slice(index_t dim, index_t n) const
     {
         location_type loc = {};
-        loc[d] = n;
-        std::array<dim_t, D - 1> new_shape;
-        for (std::size_t i = 0; i + 1 < D; ++i)
+        loc[dim] = n;
+        dim_array_t<D_ - 1> new_shape;
+        for (std::size_t i = 0; i + 1 < D_; ++i)
         {
-            new_shape[i] = m_shape.dim(i < d ? i : i + 1);
+            new_shape[i] = m_shape.dim(i < dim ? i : i + 1);
         }
         return sub(loc, new_shape);
     }
 
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
-    array_ref<T, D - 1> operator[](std::ptrdiff_t n) const
+    array_ref<T, D - 1> operator[](index_t n) const
     {
         return slice(0, n);
     }
 
     template <std::size_t D_ = D, std::enable_if_t<(D_ == 1), int> = 0>
-    T& operator[](std::ptrdiff_t n) const
+    reference operator[](index_t n) const
     {
         return (*this)[location_t<1>{ n }];
     }
 
-    T& operator[](const location_type& loc) const
+    reference operator[](const location_type& loc) const
     {
         return *get(loc);
     }
@@ -76,7 +85,13 @@ struct array_ref
         return sub(this_loc, new_shape);
     }
 
-    T* get(const location_type& loc) const
+    // template <index_t... I>
+    // auto operator()(I... indices) const
+    // {
+    //     return (*this)[location_t
+    // }
+
+    pointer get(const location_type& loc) const
     {
         return reinterpret_cast<T*>(m_ptr + offset(m_shape, loc));
     }
@@ -142,20 +157,20 @@ struct slices_fn
     struct iter
     {
         const array_ref<T, D>* m_self;
-        std::size_t m_d;
+        std::size_t m_dim;
         std::ptrdiff_t m_n;
 
-        iter() : m_self{}, m_d{}, m_n{}
+        iter() : m_self{}, m_dim{}, m_n{}
         {
         }
 
-        iter(const array_ref<T, D>& self, std::size_t d, std::ptrdiff_t n) : m_self{ &self }, m_d{ d }, m_n{ n }
+        iter(const array_ref<T, D>& self, std::size_t dim, std::ptrdiff_t n) : m_self{ &self }, m_dim{ dim }, m_n{ n }
         {
         }
 
         array_ref<T, D - 1> deref() const
         {
-            return m_self->slice(m_d, m_n);
+            return m_self->slice(m_dim, m_n);
         }
 
         void advance(std::ptrdiff_t offset)
@@ -181,7 +196,7 @@ struct slices_fn
         {
             return {
                 iterator<T, D>{ a, m_d, std::ptrdiff_t(0) },
-                iterator<T, D>{ a, m_d, a.shape().dim(m_d)[0] },
+                iterator<T, D>{ a, m_d, a.shape().dim(m_d).size },
             };
         }
     };

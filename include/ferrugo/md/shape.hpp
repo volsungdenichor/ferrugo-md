@@ -11,10 +11,14 @@ namespace ferrugo
 namespace md
 {
 
+using index_t = std::ptrdiff_t;
+using flat_offset_t = std::ptrdiff_t;
+using volume_t = std::ptrdiff_t;
+
 template <std::size_t D>
-struct location_t : std::array<std::ptrdiff_t, D>
+struct location_t : std::array<index_t, D>
 {
-    using base_t = std::array<std::ptrdiff_t, D>;
+    using base_t = std::array<index_t, D>;
 
     using base_t::base_t;
 
@@ -24,8 +28,9 @@ struct location_t : std::array<std::ptrdiff_t, D>
     }
 
     template <class... Tail>
-    location_t(std::ptrdiff_t head, Tail... tail) : base_t{ { head, tail... } }
+    location_t(index_t head, Tail... tail) : base_t{ { head, tail... } }
     {
+        static_assert(sizeof...(tail) + 1 == D, "all values required to be set");
     }
 
     friend std::ostream& operator<<(std::ostream& os, const location_t& item)
@@ -44,32 +49,32 @@ struct location_t : std::array<std::ptrdiff_t, D>
     }
 };
 
-struct dim_t : std::array<std::ptrdiff_t, 2>
+struct dim_t
 {
-    using base_t = std::array<std::ptrdiff_t, 2>;
-
-    dim_t() = default;
-
-    dim_t(std::ptrdiff_t size, std::ptrdiff_t stride) : base_t{ { size, stride } }
-    {
-    }
+    index_t size;
+    index_t stride;
 };
+
+template <std::size_t D>
+using dim_array_t = std::array<dim_t, D>;
 
 template <std::size_t D>
 struct shape_t
 {
-    using dim_array = std::array<dim_t, D>;
-    dim_array m_dims;
+    using location_type = location_t<D>;
+    using dim_array_type = dim_array_t<D>;
+    dim_array_type m_dims;
 
     shape_t() = default;
 
-    shape_t(dim_array dims) : m_dims(std::move(dims))
+    shape_t(dim_array_type dims) : m_dims(std::move(dims))
     {
     }
 
     template <class... Args>
     shape_t(Args&&... args) : m_dims{ { dim_t{ std::forward<Args>(args) }... } }
     {
+        static_assert(sizeof...(args) == D, "all dimensions required");
     }
 
     const dim_t& dim(std::size_t d) const
@@ -79,8 +84,8 @@ struct shape_t
 
     struct iter
     {
-        dim_array m_shape;
-        location_t<D> m_loc;
+        dim_array_type m_shape;
+        location_type m_loc;
 
         iter() = default;
 
@@ -88,7 +93,7 @@ struct shape_t
         {
         }
 
-        location_t<D> deref() const
+        location_type deref() const
         {
             return m_loc;
         }
@@ -106,7 +111,7 @@ struct shape_t
         void inc(std::size_t d)
         {
             ++m_loc[d];
-            if (m_loc[d] == m_shape[d][0])
+            if (m_loc[d] == m_shape[d].size)
             {
                 if (d + 1 < D)
                 {
@@ -121,13 +126,13 @@ struct shape_t
 
     auto begin() const -> iterator
     {
-        return iterator{ *this, location_t<D>{} };
+        return iterator{ *this, location_type{} };
     }
 
     auto end() const -> iterator
     {
-        location_t<D> loc{};
-        loc[D - 1] = m_dims[D - 1][0];
+        location_type loc{};
+        loc.back() = m_dims[D - 1].size;
         return iterator{ *this, loc };
     }
 };
@@ -136,9 +141,9 @@ namespace detail
 {
 
 template <class Impl>
-struct shape_fn
+struct shape_getter_fn
 {
-    auto operator()(const dim_t& item) const -> std::ptrdiff_t
+    auto operator()(const dim_t& item) const -> index_t
     {
         static const auto impl = Impl{};
         return impl(item);
@@ -158,7 +163,7 @@ struct shape_fn
 
 struct min_fn
 {
-    auto operator()(const dim_t&) const -> std::ptrdiff_t
+    auto operator()(const dim_t&) const -> index_t
     {
         return 0;
     }
@@ -166,15 +171,15 @@ struct min_fn
 
 struct max_fn
 {
-    auto operator()(const dim_t& item) const -> std::ptrdiff_t
+    auto operator()(const dim_t& item) const -> index_t
     {
-        return item[0] - 1;
+        return item.size - 1;
     }
 };
 
 struct lower_fn
 {
-    auto operator()(const dim_t&) const -> std::ptrdiff_t
+    auto operator()(const dim_t&) const -> index_t
     {
         return 0;
     }
@@ -182,39 +187,39 @@ struct lower_fn
 
 struct upper_fn
 {
-    auto operator()(const dim_t& item) const -> std::ptrdiff_t
+    auto operator()(const dim_t& item) const -> index_t
     {
-        return item[0];
+        return item.size;
     }
 };
 
 struct size_fn
 {
-    auto operator()(const dim_t& item) const -> std::ptrdiff_t
+    auto operator()(const dim_t& item) const -> index_t
     {
-        return item[0];
+        return item.size;
     }
 };
 
 struct stride_fn
 {
-    auto operator()(const dim_t& item) const -> std::ptrdiff_t
+    auto operator()(const dim_t& item) const -> index_t
     {
-        return item[1];
+        return item.stride;
     }
 };
 
 struct offset_fn
 {
-    auto operator()(const dim_t& item, std::ptrdiff_t loc) const -> std::ptrdiff_t
+    auto operator()(const dim_t& item, index_t loc) const -> flat_offset_t
     {
-        return loc * item[1];
+        return loc * item.stride;
     }
 
     template <std::size_t D>
-    auto operator()(const shape_t<D>& item, const location_t<D>& loc) const -> std::ptrdiff_t
+    auto operator()(const shape_t<D>& item, const location_t<D>& loc) const -> flat_offset_t
     {
-        std::ptrdiff_t result = 0;
+        flat_offset_t result = 0;
         for (std::size_t d = 0; d < D; ++d)
         {
             result += (*this)(item.dim(d), loc[d]);
@@ -225,15 +230,15 @@ struct offset_fn
 
 struct volume_fn
 {
-    auto operator()(const dim_t& item) const -> std::ptrdiff_t
+    auto operator()(const dim_t& item) const -> volume_t
     {
-        return item[0];
+        return item.size;
     }
 
     template <std::size_t D>
-    auto operator()(const shape_t<D>& item) const -> std::ptrdiff_t
+    auto operator()(const shape_t<D>& item) const -> volume_t
     {
-        std::ptrdiff_t result = 1;
+        volume_t result = 1;
         for (std::size_t d = 0; d < D; ++d)
         {
             result *= (*this)(item.dim(d));
@@ -244,12 +249,12 @@ struct volume_fn
 
 }  // namespace detail
 
-static constexpr inline auto min = detail::shape_fn<detail::min_fn>{};
-static constexpr inline auto max = detail::shape_fn<detail::max_fn>{};
-static constexpr inline auto lower = detail::shape_fn<detail::lower_fn>{};
-static constexpr inline auto upper = detail::shape_fn<detail::upper_fn>{};
-static constexpr inline auto size = detail::shape_fn<detail::size_fn>{};
-static constexpr inline auto stride = detail::shape_fn<detail::stride_fn>{};
+static constexpr inline auto min = detail::shape_getter_fn<detail::min_fn>{};
+static constexpr inline auto max = detail::shape_getter_fn<detail::max_fn>{};
+static constexpr inline auto lower = detail::shape_getter_fn<detail::lower_fn>{};
+static constexpr inline auto upper = detail::shape_getter_fn<detail::upper_fn>{};
+static constexpr inline auto size = detail::shape_getter_fn<detail::size_fn>{};
+static constexpr inline auto stride = detail::shape_getter_fn<detail::stride_fn>{};
 static constexpr inline auto offset = detail::offset_fn{};
 static constexpr inline auto volume = detail::volume_fn{};
 

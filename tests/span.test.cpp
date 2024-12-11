@@ -4,6 +4,14 @@
 #include <ferrugo/md/array_ref.hpp>
 #include <ferrugo/md/shape.hpp>
 
+namespace std
+{
+ostream& operator<<(ostream& os, byte item)
+{
+    return os << static_cast<int>(item);
+}
+}  // namespace std
+
 using namespace ferrugo;
 using namespace std::string_literals;
 
@@ -38,39 +46,35 @@ TEST_CASE("array_ref 2d", "[md]")
     std::cout << core::delimit(md::slices(1)(array), "\n") << "\n\n";
 }
 
+using image = md::array_ref<std::byte, 3>;
+using image_channel = md::array_ref<std::byte, 2>;
+
+auto create_image_shape(md::index_t w, md::index_t h) -> image::shape_type
+{
+    return image::shape_type(md::dim_t{ w, 3 }, md::dim_t{ h, w * 3 }, md::dim_t{ 3, 1 });
+}
+
 TEST_CASE("array_ref", "[md]")
 {
-    const auto shape = md::shape_t<3>(md::dim_t{ 5, 3 }, md::dim_t{ 4, 5 * 3 }, md::dim_t{ 3, 1 });
-    std::cout << shape << std::endl;
-    std::vector<unsigned char> v;
+    const auto shape = create_image_shape(5, 4);
+    std::vector<std::byte> v;
     v.resize(md::volume(shape));
-    const auto a = md::array_ref<unsigned char, 3>{ v.data(), shape };
-    a[md::location_t<3>{ 0, 0, 0 }] = 255;
-    a[md::location_t<3>{ 0, 0, 1 }] = 128;
-    a[md::location_t<3>{ 0, 0, 2 }] = 64;
+    const auto a = image{ v.data(), shape };
+    a[md::location_t<2>(1, 1)] = { std::byte{ 255 }, std::byte{ 128 }, std::byte{ 64 } };
+    a[md::location_t<2>(2, 2)] = { std::byte(25), std::byte(35), std::byte(45) };
+    a[md::location_t<2>(3, 1)] = { std::byte(99), std::byte(77), std::byte(55) };
 
-    a[md::location_t<2>{ 0, 0 }] = 77;
-    a[md::location_t<3>{ 0, 0, 1 }] = 99;
-    std::cout << a[md::location_t<2>{ 0, 0 }] << std::endl;
-
-    a[md::location_t<3>{ 1, 0, 0 }] = 9;
-    a[md::location_t<3>{ 1, 0, 1 }] = 9;
-    a[md::location_t<3>{ 1, 0, 2 }] = 9;
-
-    a[md::location_t<3>{ 2, 2, 0 }] = 11;
-    a[md::location_t<3>{ 2, 2, 1 }] = 22;
-    a[md::location_t<3>{ 2, 2, 2 }] = 33;
-
-    for (auto x : md::slices(0)(a))
+    for (md::array_ref<std::byte, 2> x : md::slices(1)(a))
     {
-        for (auto y : md::slices(0)(x))
+        std::cout << "ROW\n";
+        for (md::array_ref<std::byte, 1> y : md::slices(0)(x))
         {
-            std::cout << y << std::endl;
+            std::cout << "  " << y << "\n";
         }
     }
 
-    for (auto x : md::subslices(2)(a))
-    {
-        std::cout << " - " << x << std::endl;
-    }
+    // for (auto x : md::subslices(2)(a))
+    // {
+    //     std::cout << " - " << x << std::endl;
+    // }
 }
