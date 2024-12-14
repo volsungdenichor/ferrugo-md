@@ -9,6 +9,35 @@ namespace md
 
 using byte = unsigned char;
 
+struct slice_t
+{
+    std::optional<index_t> start = std::nullopt;
+    std::optional<index_t> stop = std::nullopt;
+    std::optional<index_t> step = std::nullopt;
+};
+
+inline auto indices(const slice_t& s, std::ptrdiff_t n) -> std::array<index_t, 3>
+{
+    const auto step = s.step.value_or(1);
+    const auto adjust_val = [&](index_t v) { return v >= 0 ? v : n + v; };
+    if (step > 0)
+    {
+        const auto start = s.start ? adjust_val(*s.start) : 0;
+        const auto stop = s.stop ? adjust_val(*s.stop) : n;
+        return { start, stop, step };
+    }
+    if (step < 0)
+    {
+        const auto start = s.start ? adjust_val(*s.start) : n - 1;
+        const auto stop = s.stop ? adjust_val(*s.stop) : -1;
+        return { start, stop, step };
+    }
+    throw std::runtime_error{ "step cannot be zero" };
+}
+
+template <std::size_t D>
+using slice_array_t = std::array<slice_t, D>;
+
 template <class T, std::size_t D>
 class array_ref
 {
@@ -40,20 +69,68 @@ public:
     template <std::size_t Dim>
     auto sub(const location_type& this_loc, dim_array_t<Dim> new_shape) const -> array_ref<T, Dim>
     {
-        T* new_ptr = get(this_loc);
-        return { new_ptr, shape_t<Dim>{ std::move(new_shape) } };
+        return array_ref<T, Dim>{ get(this_loc), shape_t<Dim>{ std::move(new_shape) } };
+    }
+
+    auto operator[](const slice_array_t<D>& slices) const -> array_ref
+    {
+        static const auto handle = [](const dim_t& d, const slice_t& s) -> std::pair<index_t, dim_t>
+        {
+            const auto [start, stop, step] = indices(s, d.size);
+            const auto size = std::invoke(
+                [&]() -> index_t
+                {
+                    index_t res = 0;
+                    if (step > 0)
+                    {
+                        for (index_t val = start; val < stop; val += step, ++res)
+                        {
+                        }
+                    }
+                    else
+                    {
+                        for (index_t val = start; val > stop; val += step, ++res)
+                        {
+                        }
+                    }
+                    return res;
+                });
+            return { start, dim_t{ std::max<index_t>(0, size), d.stride * step } };
+        };
+
+        location_type start;
+        dim_array_t<D> new_shape;
+
+        for (std::size_t d = 0; d < D; ++d)
+        {
+            std::tie(start[d], new_shape[d]) = handle(shape().dim(d), slices[d]);
+        }
+
+        return array_ref{ get(start), shape_type{ new_shape } };
     }
 
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
     auto slice(std::size_t dim, index_t n) const -> array_ref<T, D - 1>
     {
-        location_type loc = {};
-        loc[dim] = n;
-        dim_array_t<D_ - 1> new_shape;
-        for (std::size_t i = 0; i + 1 < D_; ++i)
-        {
-            new_shape[i] = m_shape.dim(i < dim ? i : i + 1);
-        }
+        const location_type loc = std::invoke(
+            [&]() -> location_type
+            {
+                location_type res = {};
+                res[dim] = n;
+                return res;
+            });
+
+        const dim_array_t<D_ - 1> new_shape = std::invoke(
+            [&]() -> dim_array_t<D_ - 1>
+            {
+                dim_array_t<D_ - 1> res;
+                for (std::size_t i = 0; i + 1 < D_; ++i)
+                {
+                    res[i] = m_shape.dim(i < dim ? i : i + 1);
+                }
+                return res;
+            });
+
         return sub(loc, new_shape);
     }
 
@@ -77,15 +154,20 @@ public:
     template <std::size_t D_ = D, class = std::enable_if_t<(D_ > 0)>>
     auto operator[](const location_t<D_ - 1>& loc) const -> array_ref<T, 1>
     {
-        location_type this_loc = {};
-        std::copy(std::begin(loc), std::end(loc), std::begin(this_loc));
+        const location_type this_loc = std::invoke(
+            [&]() -> location_type
+            {
+                location_type res = {};
+                std::copy(std::begin(loc), std::end(loc), std::begin(res));
+                return res;
+            });
         dim_array_t<1> new_shape{ m_shape.dim(D - 1) };
         return sub(this_loc, new_shape);
     }
 
     auto get(const location_type& loc) const -> pointer
     {
-        return reinterpret_cast<T*>(m_ptr + offset(m_shape, loc));
+        return reinterpret_cast<pointer>(m_ptr + offset(m_shape, loc));
     }
 
     friend std::ostream& operator<<(std::ostream& os, const array_ref& item)

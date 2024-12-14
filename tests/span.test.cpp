@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_all.hpp>
 #include <ferrugo/core/ostream_utils.hpp>
+#include <ferrugo/core/std_ostream.hpp>
 #include <ferrugo/md/array.hpp>
 #include <ferrugo/md/bitmap.hpp>
 
@@ -46,15 +47,21 @@ TEST_CASE("array_ref 2d", "[md]")
     std::cout << core::delimit(md::slices(1)(array), "\n") << "\n\n";
 }
 
+TEST_CASE("array_ref - indices", "[md]")
+{
+    const auto s = md::slice_t{ {}, {}, 2 };
+    std::cout << core::delimit(md::indices(s, 10), " ") << "\n";
+}
+
 TEST_CASE("array_ref", "[md]")
 {
     using byte = ferrugo::md::byte;
 
     auto arr = ferrugo::md::load_bitmap(R"(/mnt/d/Users/Krzysiek/Pictures/hippie.bmp)");
     auto a = arr.mut_ref();
-    std::cout << arr.shape() << "\n";
     a[md::location_t<2>{ 5, 5 }] = { 255, 255, 0 };
     a[md::location_t<2>{ 10, 10 }] = { 255, 255, 0 };
     a[md::location_t<2>{ 15, 15 }] = { 255, 255, 0 };
-    ferrugo::md::save_bitmap(arr.ref().slice(2, 0), R"(/mnt/d/Users/Krzysiek/Pictures/hippie_ooo.bmp)");
+    a[{ md::slice_t{}, md::slice_t{ 10, -30, 3 }, md::slice_t{ 0, 1 } }] = 99;
+    ferrugo::md::save_bitmap(arr.ref(), R"(/mnt/d/Users/Krzysiek/Pictures/hippie_ooo.bmp)");
 }

@@ -85,6 +85,11 @@ public:
         return m_dims[d];
     }
 
+    auto dims() const -> const dim_array_type&
+    {
+        return m_dims;
+    }
+
     struct iter
     {
         dim_array_type m_shape;
