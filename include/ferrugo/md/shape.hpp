@@ -59,11 +59,11 @@ template <std::size_t D>
 using dim_array_t = std::array<dim_t, D>;
 
 template <std::size_t D>
-struct shape_t
+class shape_t
 {
+public:
     using location_type = location_t<D>;
     using dim_array_type = dim_array_t<D>;
-    dim_array_type m_dims;
 
     shape_t() = default;
 
@@ -71,10 +71,13 @@ struct shape_t
     {
     }
 
-    template <class... Args>
-    shape_t(Args&&... args) : m_dims{ { dim_t{ std::forward<Args>(args) }... } }
+    shape_t(const shape_t&) = default;
+    shape_t(shape_t&&) = default;
+
+    template <class... Tail>
+    shape_t(dim_t head, Tail&&... tail) : m_dims{ { head, dim_t{ std::forward<Tail>(tail) }... } }
     {
-        static_assert(sizeof...(args) == D, "all dimensions required");
+        static_assert(sizeof...(tail) + 1 == D, "all dimensions required");
     }
 
     auto dim(std::size_t d) const -> const dim_t&
@@ -135,6 +138,9 @@ struct shape_t
         loc.back() = m_dims[D - 1].size;
         return iterator{ *this, loc };
     }
+
+private:
+    dim_array_type m_dims;
 };
 
 namespace detail

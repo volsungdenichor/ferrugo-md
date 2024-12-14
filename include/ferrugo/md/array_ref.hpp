@@ -10,8 +10,9 @@ namespace md
 using byte = unsigned char;
 
 template <class T, std::size_t D>
-struct array_ref
+class array_ref
 {
+public:
     using value_type = std::remove_const_t<T>;
     using shape_type = shape_t<D>;
     using shape_iterator = typename shape_type::iterator;
@@ -19,10 +20,7 @@ struct array_ref
     using reference = T&;
     using pointer = T*;
 
-    byte* m_ptr;
-    shape_type m_shape;
-
-    array_ref(pointer ptr, shape_type shape) : m_ptr{ reinterpret_cast<byte*>(ptr) }, m_shape{ std::move(shape) }
+    array_ref(pointer ptr, shape_type shape) : m_ptr{ (byte*)ptr }, m_shape{ std::move(shape) }
     {
     }
 
@@ -47,7 +45,7 @@ struct array_ref
     }
 
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
-    auto slice(index_t dim, index_t n) const -> array_ref<T, D - 1>
+    auto slice(std::size_t dim, index_t n) const -> array_ref<T, D - 1>
     {
         location_type loc = {};
         loc[dim] = n;
@@ -81,7 +79,7 @@ struct array_ref
     {
         location_type this_loc = {};
         std::copy(std::begin(loc), std::end(loc), std::begin(this_loc));
-        std::array<dim_t, 1> new_shape{ m_shape.dim(D - 1) };
+        dim_array_t<1> new_shape{ m_shape.dim(D - 1) };
         return sub(this_loc, new_shape);
     }
 
@@ -143,6 +141,10 @@ struct array_ref
     {
         return iterator{ *this, std::end(m_shape) };
     }
+
+private:
+    byte* m_ptr;
+    shape_type m_shape;
 };
 
 struct slices_fn
@@ -239,11 +241,12 @@ struct subslices_fn
     struct impl
     {
         std::size_t m_d;
+        index_t m_n;
 
         template <class T, std::size_t D>
         auto operator()(const array_ref<T, D>& a) const -> ferrugo::core::subrange<iterator<T, D>>
         {
-            const auto slice = a.slice(D - 1, 0).shape();
+            const auto slice = a.slice(m_d, m_n).shape();
             return {
                 iterator<T, D>{ a, slice.begin() },
                 iterator<T, D>{ a, slice.end() },
@@ -251,9 +254,9 @@ struct subslices_fn
         }
     };
 
-    auto operator()(std::size_t d) const -> impl
+    auto operator()(std::size_t d, index_t n) const -> impl
     {
-        return { d };
+        return { d, n };
     }
 };
 

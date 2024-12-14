@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_all.hpp>
 #include <ferrugo/core/ostream_utils.hpp>
-#include <ferrugo/md/array_ref.hpp>
-#include <ferrugo/md/shape.hpp>
+#include <ferrugo/md/array.hpp>
+#include <ferrugo/md/bitmap.hpp>
 
 namespace std
 {
@@ -46,35 +46,15 @@ TEST_CASE("array_ref 2d", "[md]")
     std::cout << core::delimit(md::slices(1)(array), "\n") << "\n\n";
 }
 
-using image = md::array_ref<std::byte, 3>;
-using image_channel = md::array_ref<std::byte, 2>;
-
-auto create_image_shape(md::index_t h, md::index_t w) -> image::shape_type
-{
-    return image::shape_type(md::dim_t{ h, 3 * w }, md::dim_t{ w, 3 }, md::dim_t{ 3, 1 });
-}
-
 TEST_CASE("array_ref", "[md]")
 {
-    const auto shape = create_image_shape(4, 6);
-    std::vector<std::byte> v;
-    v.resize(md::volume(shape));
-    const auto a = image{ v.data(), shape };
-    a[md::location_t<2>(1, 1)] = { std::byte{ 255 }, std::byte{ 128 }, std::byte{ 64 } };
-    a[md::location_t<2>(2, 2)] = { std::byte(25), std::byte(35), std::byte(45) };
-    a[md::location_t<2>(3, 1)] = { std::byte(99), std::byte(77), std::byte(55) };
+    using byte = ferrugo::md::byte;
 
-    for (md::array_ref<std::byte, 2> x : md::slices(0)(a))
-    {
-        std::cout << "ROW " << x << "\n";
-        for (md::array_ref<std::byte, 1> y : md::slices(0)(x))
-        {
-            std::cout << "  " << y << "\n";
-        }
-    }
-
-    // for (auto x : md::subslices(2)(a))
-    // {
-    //     std::cout << " - " << x << std::endl;
-    // }
+    auto arr = ferrugo::md::load_bitmap(R"(/mnt/d/Users/Krzysiek/Pictures/hippie.bmp)");
+    auto a = arr.mut_ref();
+    std::cout << arr.shape() << "\n";
+    a[md::location_t<2>{ 5, 5 }] = { 255, 255, 0 };
+    a[md::location_t<2>{ 10, 10 }] = { 255, 255, 0 };
+    a[md::location_t<2>{ 15, 15 }] = { 255, 255, 0 };
+    ferrugo::md::save_bitmap(arr.ref().slice(2, 0), R"(/mnt/d/Users/Krzysiek/Pictures/hippie_ooo.bmp)");
 }
