@@ -49,6 +49,14 @@ struct location_t : std::array<index_t, D>
     }
 };
 
+template <std::size_t D>
+struct bounds_t : std::array<std::pair<index_t, index_t>, D>
+{
+    using base_t = std::array<std::pair<index_t, index_t>, D>;
+
+    using base_t::base_t;
+};
+
 struct dim_t
 {
     index_t size;

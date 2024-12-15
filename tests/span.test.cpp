@@ -59,9 +59,13 @@ TEST_CASE("array_ref", "[md]")
 
     auto arr = ferrugo::md::load_bitmap(R"(/mnt/d/Users/Krzysiek/Pictures/hippie.bmp)");
     auto a = arr.mut_ref();
-    a[md::location_t<2>{ 5, 5 }] = { 255, 255, 0 };
-    a[md::location_t<2>{ 10, 10 }] = { 255, 255, 0 };
-    a[md::location_t<2>{ 15, 15 }] = { 255, 255, 0 };
-    a[{ md::slice_t{}, md::slice_t{ 10, -30, 3 }, md::slice_t{ 0, 1 } }] = 99;
+    const auto sub = a[{ md::at(-1), {}, {} }];
+    int i = 0;
+    for (auto s : md::slices(1)(sub))
+    {
+        s = { byte(i % 256), 0, 0 };
+        ++i;
+        // std::cout << s.shape() << "\n";
+    }
     ferrugo::md::save_bitmap(arr.ref(), R"(/mnt/d/Users/Krzysiek/Pictures/hippie_ooo.bmp)");
 }

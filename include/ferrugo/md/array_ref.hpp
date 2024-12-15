@@ -16,6 +16,11 @@ struct slice_t
     std::optional<index_t> step = std::nullopt;
 };
 
+inline auto at(index_t v) -> slice_t
+{
+    return v != -1 ? slice_t{ v, v + 1, {} } : slice_t{ -1, {} };
+}
+
 inline auto indices(const slice_t& s, std::ptrdiff_t n) -> std::array<index_t, 3>
 {
     const auto step = s.step.value_or(1);
@@ -116,6 +121,7 @@ public:
             [&]() -> location_type
             {
                 location_type res = {};
+                std::fill(std::begin(res), std::end(res), 0);
                 res[dim] = n;
                 return res;
             });
