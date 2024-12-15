@@ -58,6 +58,16 @@ public:
     {
     }
 
+    auto as_const() const -> array_ref<std::add_const_t<T>, D>
+    {
+        return { (pointer)m_ptr, m_shape };
+    }
+
+    operator array_ref<std::add_const_t<T>, D>() const
+    {
+        return as_const();
+    }
+
     template <class T_ = T, class = std::enable_if_t<!std::is_const_v<T_>>>
     auto operator=(T_ value) -> array_ref&
     {

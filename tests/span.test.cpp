@@ -59,13 +59,6 @@ TEST_CASE("array_ref", "[md]")
 
     auto arr = ferrugo::md::load_bitmap(R"(/mnt/d/Users/Krzysiek/Pictures/hippie.bmp)");
     auto a = arr.mut_ref();
-    const auto sub = a[{ md::at(-1), {}, {} }];
-    int i = 0;
-    for (auto s : md::slices(1)(sub))
-    {
-        s = { byte(i % 256), 0, 0 };
-        ++i;
-        // std::cout << s.shape() << "\n";
-    }
-    ferrugo::md::save_bitmap(arr.ref(), R"(/mnt/d/Users/Krzysiek/Pictures/hippie_ooo.bmp)");
+    auto b = a[md::slice_array_t<3>{ md::slice_t{}, md::slice_t{ {}, {}, -1 }, md::slice_t{} }];
+    ferrugo::md::save_bitmap(b.as_const(), R"(/mnt/d/Users/Krzysiek/Pictures/hippie_ooo.bmp)");
 }
