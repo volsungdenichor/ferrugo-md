@@ -21,10 +21,11 @@ inline auto at(index_t v) -> slice_t
     return v != -1 ? slice_t{ v, v + 1, {} } : slice_t{ -1, {} };
 }
 
-inline auto indices(const slice_t& s, std::ptrdiff_t n) -> std::array<index_t, 3>
+inline auto indices(const slice_t& s, index_t n) -> std::array<index_t, 3>
 {
     const auto step = s.step.value_or(1);
-    const auto adjust_val = [&](index_t v) { return v >= 0 ? v : n + v; };
+    const auto clamp = [&](index_t v) { return std::max(index_t(0), std::min(v, n)); };
+    const auto adjust_val = [&](index_t v) { return clamp(v >= 0 ? v : n + v); };
     if (step > 0)
     {
         const auto start = s.start ? adjust_val(*s.start) : 0;
@@ -60,7 +61,7 @@ public:
 
     auto as_const() const -> array_ref<std::add_const_t<T>, D>
     {
-        return { (pointer)m_ptr, m_shape };
+        return { get(), m_shape };
     }
 
     operator array_ref<std::add_const_t<T>, D>() const
@@ -162,28 +163,19 @@ public:
         return (*this)[location_t<1>{ n }];
     }
 
-    auto operator[](const location_type& loc) const -> reference
+    auto get() const -> pointer
     {
-        return *get(loc);
-    }
-
-    template <std::size_t D_ = D, class = std::enable_if_t<(D_ > 0)>>
-    auto operator[](const location_t<D_ - 1>& loc) const -> array_ref<T, 1>
-    {
-        const location_type this_loc = std::invoke(
-            [&]() -> location_type
-            {
-                location_type res = {};
-                std::copy(std::begin(loc), std::end(loc), std::begin(res));
-                return res;
-            });
-        dim_array_t<1> new_shape{ m_shape.dim(D - 1) };
-        return sub(this_loc, new_shape);
+        return (pointer)m_ptr;
     }
 
     auto get(const location_type& loc) const -> pointer
     {
         return reinterpret_cast<pointer>(m_ptr + offset(m_shape, loc));
+    }
+
+    auto operator[](const location_type& loc) const -> reference
+    {
+        return *get(loc);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const array_ref& item)
@@ -358,8 +350,32 @@ struct subslices_fn
     }
 };
 
+struct swap_axes_fn
+{
+    struct impl
+    {
+        std::size_t m_a;
+        std::size_t m_b;
+
+        template <class T, std::size_t D>
+        auto operator()(const array_ref<T, D>& a) const -> array_ref<T, D>
+        {
+            auto dims = a.shape().dims();
+            std::swap(dims[m_a], dims[m_b]);
+            return array_ref<T, D>{ a.get(), shape_t<D>{ dims } };
+        }
+    };
+
+    constexpr auto operator()(std::size_t a, std::size_t b) const -> impl
+    {
+        return { a, b };
+    }
+};
+
 static constexpr inline auto slices = slices_fn{};
 static constexpr inline auto subslices = subslices_fn{};
+static constexpr inline auto swap_axes = swap_axes_fn{};
+static constexpr inline auto transpose = swap_axes(0, 1);
 
 }  // namespace md
 }  // namespace ferrugo
