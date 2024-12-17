@@ -4,58 +4,12 @@
 #include <cstddef>
 #include <ferrugo/core/iterator_interface.hpp>
 #include <ferrugo/core/subrange.hpp>
-#include <iostream>
+#include <ferrugo/md/defs.hpp>
 
 namespace ferrugo
 {
 namespace md
 {
-
-using index_t = std::ptrdiff_t;
-using flat_offset_t = std::ptrdiff_t;
-using volume_t = std::ptrdiff_t;
-
-template <std::size_t D>
-struct location_t : std::array<index_t, D>
-{
-    using base_t = std::array<index_t, D>;
-
-    using base_t::base_t;
-
-    location_t()
-    {
-        std::fill(base_t::begin(), base_t::end(), 0);
-    }
-
-    template <class... Tail>
-    location_t(index_t head, Tail... tail) : base_t{ { head, tail... } }
-    {
-        static_assert(sizeof...(tail) + 1 == D, "all values required to be set");
-    }
-
-    friend std::ostream& operator<<(std::ostream& os, const location_t& item)
-    {
-        os << "[";
-        for (std::size_t d = 0; d < D; ++d)
-        {
-            if (d != 0)
-            {
-                os << " ";
-            }
-            os << item[d];
-        }
-        os << "]";
-        return os;
-    }
-};
-
-template <std::size_t D>
-struct bounds_t : std::array<std::pair<index_t, index_t>, D>
-{
-    using base_t = std::array<std::pair<index_t, index_t>, D>;
-
-    using base_t::base_t;
-};
 
 struct dim_t
 {
@@ -220,6 +174,25 @@ struct size_fn
     }
 };
 
+struct extents_fn
+{
+    auto operator()(const dim_t& item) const -> extent_base_t
+    {
+        return { index_t(0), item.size };
+    }
+
+    template <std::size_t D>
+    auto operator()(const shape_t<D>& item) const -> extent_t<D>
+    {
+        extent_t<D> result;
+        for (std::size_t d = 0; d < D; ++d)
+        {
+            result[d] = (*this)(item.dim(d));
+        }
+        return result;
+    }
+};
+
 struct stride_fn
 {
     auto operator()(const dim_t& item) const -> index_t
@@ -274,6 +247,7 @@ static constexpr inline auto lower = detail::shape_getter_fn<detail::lower_fn>{}
 static constexpr inline auto upper = detail::shape_getter_fn<detail::upper_fn>{};
 static constexpr inline auto size = detail::shape_getter_fn<detail::size_fn>{};
 static constexpr inline auto stride = detail::shape_getter_fn<detail::stride_fn>{};
+static constexpr inline auto extents = detail::extents_fn{};
 static constexpr inline auto offset = detail::offset_fn{};
 static constexpr inline auto volume = detail::volume_fn{};
 

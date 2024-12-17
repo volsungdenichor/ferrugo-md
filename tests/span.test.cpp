@@ -58,6 +58,7 @@ TEST_CASE("array_ref", "[md]")
     using byte = ferrugo::md::byte;
 
     auto arr = ferrugo::md::load_bitmap(R"(/mnt/d/Users/Krzysiek/Pictures/hippie.bmp)");
+    std::cout << md::extents(arr.shape()) << "\n";
     auto a = arr.mut_ref();
     auto b = md::transpose(a)[{ md::slice_t{ {}, {}, -1 }, md::slice_t{}, md::slice_t{} }];
     b[50][200] = { 255, 0, 0 };
