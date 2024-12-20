@@ -1,5 +1,6 @@
 #include <array>
 #include <ferrugo/md_v2/access.hpp>
+#include <ferrugo/md_v2/slice.hpp>
 #include <ferrugo/md_v2/types.hpp>
 #include <iostream>
 #include <memory>
@@ -8,6 +9,7 @@
 void run()
 {
     namespace md = ferrugo::md_v2;
+    std::cout << md::slice_t<2>{ md::slice_t<>{ 2, 4 }, md::slice_t<>{ 3, -2, 2 } } << "\n";
     md::bounds_t<2> item{ md::bounds_t<>{ 10, 15 }, md::bounds_t<>{ 5, 10 } };
     std::cout << item << "\n";
     std::cout << md::min(item) << "\n";
