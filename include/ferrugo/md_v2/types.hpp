@@ -12,10 +12,10 @@ namespace md_v2
 namespace detail
 {
 
-template <template <std::size_t> class Base, std::size_t D>
-struct array_base : public std::array<Base<1>, D>
+template <class T, std::size_t D>
+struct array_base : public std::array<T, D>
 {
-    using base_t = std::array<Base<1>, D>;
+    using base_t = std::array<T, D>;
     using value_type = typename base_t::value_type;
 
     array_base()
@@ -72,7 +72,7 @@ struct location_base_t<1>
 template <std::size_t D>
 struct location_base_t
 {
-    using type = array_base<location_t, D>;
+    using type = array_base<location_t<1>, D>;
 };
 
 template <>
@@ -103,7 +103,7 @@ struct bounds_base_t<1>
 template <std::size_t D>
 struct bounds_base_t
 {
-    using type = array_base<bounds_t, D>;
+    using type = array_base<bounds_t<1>, D>;
 };
 
 template <>
@@ -135,7 +135,7 @@ struct dim_base_t<1>
 template <std::size_t D>
 struct dim_base_t
 {
-    using type = array_base<dim_t, D>;
+    using type = array_base<dim_t<1>, D>;
 };
 
 }  // namespace detail

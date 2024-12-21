@@ -28,15 +28,15 @@ struct at_fn
         return item;
     }
 
-    template <template <std::size_t> class Base, std::size_t D>
-    auto operator()(const array_base<Base, D>& item, std::size_t n) const -> const Base<1>&
+    template <class T, std::size_t D>
+    auto operator()(const array_base<T, D>& item, std::size_t n) const -> const T&
     {
         assert(n < D);
         return item[n];
     }
 
-    template <template <std::size_t> class Base, std::size_t D>
-    auto operator()(array_base<Base, D>& item, std::size_t n) const -> Base<1>&
+    template <class T, std::size_t D>
+    auto operator()(array_base<T, D>& item, std::size_t n) const -> T&
     {
         assert(n < D);
         return item[n];
@@ -51,7 +51,7 @@ struct min_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<bounds_t, D>& item) const -> location_t<D>
+    auto operator()(const array_base<bounds_t<1>, D>& item) const -> location_t<D>
     {
         location_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -67,7 +67,7 @@ struct min_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<dim_t, D>& item) const -> location_t<D>
+    auto operator()(const array_base<dim_t<1>, D>& item) const -> location_t<D>
     {
         location_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -86,7 +86,7 @@ struct max_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<bounds_t, D>& item) const -> location_t<D>
+    auto operator()(const array_base<bounds_t<1>, D>& item) const -> location_t<D>
     {
         location_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -102,7 +102,7 @@ struct max_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<dim_t, D>& item) const -> location_t<D>
+    auto operator()(const array_base<dim_t<1>, D>& item) const -> location_t<D>
     {
         location_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -121,7 +121,7 @@ struct lower_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<bounds_t, D>& item) const -> location_t<D>
+    auto operator()(const array_base<bounds_t<1>, D>& item) const -> location_t<D>
     {
         location_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -137,7 +137,7 @@ struct lower_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<dim_t, D>& item) const -> location_t<D>
+    auto operator()(const array_base<dim_t<1>, D>& item) const -> location_t<D>
     {
         location_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -156,7 +156,7 @@ struct upper_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<bounds_t, D>& item) const -> location_t<D>
+    auto operator()(const array_base<bounds_t<1>, D>& item) const -> location_t<D>
     {
         location_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -172,7 +172,7 @@ struct upper_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<dim_t, D>& item) const -> location_t<D>
+    auto operator()(const array_base<dim_t<1>, D>& item) const -> location_t<D>
     {
         location_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -191,7 +191,7 @@ struct size_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<bounds_t, D>& item) const -> location_t<D>
+    auto operator()(const array_base<bounds_t<1>, D>& item) const -> location_t<D>
     {
         location_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -207,7 +207,7 @@ struct size_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<dim_t, D>& item) const -> location_t<D>
+    auto operator()(const array_base<dim_t<1>, D>& item) const -> location_t<D>
     {
         location_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -226,7 +226,7 @@ struct stride_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<dim_t, D>& item) const -> location_t<D>
+    auto operator()(const array_base<dim_t<1>, D>& item) const -> location_t<D>
     {
         location_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -245,7 +245,7 @@ struct bounds_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<bounds_t, D>& item) const -> bounds_t<D>
+    auto operator()(const array_base<bounds_t<1>, D>& item) const -> bounds_t<D>
     {
         return item;
     }
@@ -256,7 +256,7 @@ struct bounds_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<dim_t, D>& item) const -> bounds_t<D>
+    auto operator()(const array_base<dim_t<1>, D>& item) const -> bounds_t<D>
     {
         bounds_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
@@ -275,7 +275,7 @@ struct contains_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<bounds_t, D>& item, const array_base<location_t, D>& loc) const -> bool
+    auto operator()(const array_base<bounds_t<1>, D>& item, const array_base<location_t<1>, D>& loc) const -> bool
     {
         for (std::size_t d = 0; d < D; ++d)
         {
@@ -293,7 +293,7 @@ struct contains_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<dim_t, D>& item, const array_base<location_t, D>& loc) const -> bool
+    auto operator()(const array_base<dim_t<1>, D>& item, const array_base<location_t<1>, D>& loc) const -> bool
     {
         for (std::size_t d = 0; d < D; ++d)
         {
@@ -314,7 +314,7 @@ struct offset_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<dim_t, D>& item, const array_base<location_t, D>& loc) const -> flat_offset_t
+    auto operator()(const array_base<dim_t<1>, D>& item, const array_base<location_t<1>, D>& loc) const -> flat_offset_t
     {
         flat_offset_t result = 0;
         for (std::size_t d = 0; d < D; ++d)
@@ -333,7 +333,7 @@ struct volume_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<bounds_t, D>& item) const -> volume_t
+    auto operator()(const array_base<bounds_t<1>, D>& item) const -> volume_t
     {
         volume_t result = 1;
         for (std::size_t d = 0; d < D; ++d)
@@ -349,7 +349,7 @@ struct volume_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<dim_t, D>& item) const -> volume_t
+    auto operator()(const array_base<dim_t<1>, D>& item) const -> volume_t
     {
         volume_t result = 1;
         for (std::size_t d = 0; d < D; ++d)

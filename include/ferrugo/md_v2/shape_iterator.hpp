@@ -71,7 +71,7 @@ struct iterate_shape_fn
     }
 
     template <std::size_t D>
-    auto operator()(const array_base<dim_t, D>& item) const -> core::subrange<shape_iterator<D>>
+    auto operator()(const array_base<dim_t<1>, D>& item) const -> core::subrange<shape_iterator<D>>
     {
         const auto begin = shape_iterator<D>{ item, location_t<D>{} };
 

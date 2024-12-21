@@ -61,7 +61,7 @@ struct slice_base_t<1>
 template <std::size_t D>
 struct slice_base_t
 {
-    using type = array_base<slice_t, D>;
+    using type = array_base<slice_t<1>, D>;
 };
 
 inline auto indices(const slice_t<1>& s, location_t<1> n) -> std::array<location_t<1>, 3>
