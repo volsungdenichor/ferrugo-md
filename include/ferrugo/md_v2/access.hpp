@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <ferrugo/md_v2/types.hpp>
 #include <iostream>
 
@@ -10,6 +11,37 @@ namespace md_v2
 
 namespace detail
 {
+
+struct at_fn
+{
+    template <class T>
+    auto operator()(const T& item, std::size_t n) const -> const T&
+    {
+        assert(n < 1);
+        return item;
+    }
+
+    template <class T>
+    auto operator()(T& item, std::size_t n) const -> T&
+    {
+        assert(n < 1);
+        return item;
+    }
+
+    template <template <std::size_t> class Base, std::size_t D>
+    auto operator()(const array_base<Base, D>& item, std::size_t n) const -> const Base<1>&
+    {
+        assert(n < D);
+        return item[n];
+    }
+
+    template <template <std::size_t> class Base, std::size_t D>
+    auto operator()(array_base<Base, D>& item, std::size_t n) const -> Base<1>&
+    {
+        assert(n < D);
+        return item[n];
+    }
+};
 
 struct min_fn
 {
@@ -278,7 +310,7 @@ struct offset_fn
 {
     auto operator()(const dim_t<1>& item, const location_t<1>& loc) const -> flat_offset_t
     {
-        return item.min + item.stride * loc;
+        return (loc - item.min) * item.stride;
     }
 
     template <std::size_t D>
@@ -330,6 +362,7 @@ struct volume_fn
 
 }  // namespace detail
 
+static constexpr inline auto at = detail::at_fn{};
 static constexpr inline auto min = detail::min_fn{};
 static constexpr inline auto max = detail::max_fn{};
 static constexpr inline auto lower = detail::lower_fn{};
@@ -339,5 +372,7 @@ static constexpr inline auto stride = detail::stride_fn{};
 static constexpr inline auto bounds = detail::bounds_fn{};
 static constexpr inline auto contains = detail::contains_fn{};
 static constexpr inline auto volume = detail::volume_fn{};
+static constexpr inline auto offset = detail::offset_fn{};
+
 }  // namespace md_v2
 }  // namespace ferrugo

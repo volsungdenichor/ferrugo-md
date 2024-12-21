@@ -1,7 +1,9 @@
 set(TARGET_NAME ferrugo-md)
 
-add_executable (${TARGET_NAME} main.cpp)
+add_executable(${TARGET_NAME} main.cpp)
 
-include_directories(
+target_include_directories(
+    ${TARGET_NAME}
+    PUBLIC
     "${PROJECT_SOURCE_DIR}/include"
-)
+    "${ferrugo-core_SOURCE_DIR}/include")

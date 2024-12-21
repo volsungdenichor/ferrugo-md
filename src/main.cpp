@@ -1,25 +1,41 @@
 #include <array>
 #include <ferrugo/md_v2/access.hpp>
+#include <ferrugo/md_v2/array_ref.hpp>
+#include <ferrugo/md_v2/shape_iterator.hpp>
 #include <ferrugo/md_v2/slice.hpp>
 #include <ferrugo/md_v2/types.hpp>
 #include <iostream>
 #include <memory>
+#include <numeric>
 #include <vector>
 
 void run()
 {
     namespace md = ferrugo::md_v2;
-    std::cout << md::slice_t<2>{ md::slice_t<>{ 2, 4 }, md::slice_t<>{ 3, -2, 2 } } << "\n";
-    md::bounds_t<2> item{ md::bounds_t<>{ 10, 15 }, md::bounds_t<>{ 5, 10 } };
-    std::cout << item << "\n";
-    std::cout << md::min(item) << "\n";
-    std::cout << md::max(item) << "\n";
-    std::cout << md::lower(item) << "\n";
-    std::cout << md::upper(item) << "\n";
-    std::cout << md::size(item) << "\n";
-    std::cout << md::bounds(item) << "\n";
-    std::cout << md::volume(item) << "\n";
-    std::cout << md::contains(item, md::location_t<2>{ 3, 3 }) << "\n";
+    std::vector<unsigned char> data(1000);
+    std::iota(std::begin(data), std::end(data), 0);
+
+#if 0
+    md::dim_t<3> shape{ md::dim_t<>{ 3, 4 * 3 }, md::dim_t<>{ 4, 3 }, md::dim_t<>{ 3, 1 } };
+    const auto a = md::array_ref<const unsigned char, 3>{ data.data(), shape };
+#else
+    const auto a = md::array_ref<const unsigned char, 1>{ data.data(), md::dim_t<1>{ 5, 2 } };
+#endif
+    std::cout << "--\n";
+    for (const auto& p : a)
+    {
+        std::cout << (int)p << "\n";
+    }
+    std::cout << "--\n";
+    for (const auto& p : a.slice({ {}, {}, -1 }))
+    {
+        std::cout << (int)p << "\n";
+    }
+    std::cout << "--\n";
+    for (const auto& p : a.slice({ {}, {}, -1 }).slice({ {}, {}, -1 }))
+    {
+        std::cout << (int)p << "\n";
+    }
 }
 
 int main()

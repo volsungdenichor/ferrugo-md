@@ -31,7 +31,7 @@ struct array_base : public std::array<Base<1>, D>
 
     friend std::ostream& operator<<(std::ostream& os, const array_base& item)
     {
-        os << "[";
+        os << "(";
         for (std::size_t d = 0; d < D; ++d)
         {
             if (d != 0)
@@ -40,7 +40,7 @@ struct array_base : public std::array<Base<1>, D>
             }
             os << item[d];
         }
-        os << "]";
+        os << ")";
         return os;
     }
 };

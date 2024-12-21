@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ferrugo/md_v2/types.hpp>
+#include <functional>
 #include <optional>
 
 namespace ferrugo
@@ -81,6 +82,30 @@ inline auto indices(const slice_t<1>& s, location_t<1> n) -> std::array<location
         return { start, stop, step };
     }
     throw std::runtime_error{ "step cannot be zero" };
+}
+
+inline auto handle(const dim_t<1>& d, const slice_t<1>& s) -> dim_t<1>
+{
+    const auto [start, stop, step] = indices(s, d.size);
+    const auto size = std::invoke(
+        [&]() -> location_t<1>
+        {
+            location_t<1> res = 0;
+            if (step > 0)
+            {
+                for (location_t<1> val = start; val < stop; val += step, ++res)
+                {
+                }
+            }
+            else
+            {
+                for (location_t<1> val = start; val > stop; val += step, ++res)
+                {
+                }
+            }
+            return res;
+        });
+    return { std::max<location_t<1>>(0, size), d.stride * step, step * -(d.min - start) };
 }
 
 }  // namespace detail
