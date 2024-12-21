@@ -126,8 +126,6 @@ struct slice_base_t
     value_type stop;
     value_type step;
 
-    slice_base_t() = default;
-
     slice_base_t(value_type start = {}, value_type stop = {}, value_type step = {}) : start(start), stop(stop), step(step)
     {
     }
@@ -173,6 +171,8 @@ using dim_t = tuple_t<dim_base_t, D>;
 
 template <std::size_t D = 1>
 using slice_t = tuple_t<slice_base_t, D>;
+
+static constexpr inline auto _ = slice_base_t::value_type{};
 
 }  // namespace md_v3
 }  // namespace ferrugo

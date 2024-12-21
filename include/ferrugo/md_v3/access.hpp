@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ferrugo/md_v3/types.hpp>
+#include <functional>
 
 namespace ferrugo
 {
@@ -327,6 +328,55 @@ struct volume_fn
     }
 };
 
+struct apply_slice_fn
+{
+    auto operator()(const dim_base_t& dim, const slice_base_t& slice) const -> dim_base_t
+    {
+        const auto step = slice.step.value_or(1);
+
+        if (step == 0)
+        {
+            throw std::runtime_error{ "step cannot be zero" };
+        }
+
+        const auto apply_size = [&](location_base_t v) { return v < 0 ? v + dim.size : v; };
+        const auto ensure_non_negative = [](location_base_t v) { return std::max(location_base_t(0), v); };
+        const auto clamp = [&](location_base_t v, location_base_t shift)
+        { return std::max(location_base_t(shift), std::min(v, dim.size + shift)); };
+
+        const auto [size, start]  //
+            = step > 0            //
+                  ? std::invoke(
+                      [&]() -> std::tuple<location_base_t, location_base_t>
+                      {
+                          const auto start = clamp(apply_size(slice.start.value_or(0)), 0);
+                          const auto stop = clamp(apply_size(slice.stop.value_or(dim.size)), 0);
+                          const auto new_size = ensure_non_negative((stop - start + step - 1) / step);
+                          return std::tuple{ new_size, start };
+                      })
+                  : std::invoke(
+                      [&]() -> std::tuple<location_base_t, location_base_t>
+                      {
+                          const auto start = clamp(apply_size(slice.start.value_or(dim.size)), -1);
+                          const auto stop = clamp(apply_size(slice.stop.value_or(0)), -1);
+                          const auto new_size = ensure_non_negative((stop - start + step) / step);
+                          return std::tuple{ new_size, start };
+                      });
+        return dim_base_t{ size, dim.stride * step, dim.min + start * dim.stride };
+    }
+
+    template <std::size_t D>
+    auto operator()(const dim_t<D>& dim, const slice_t<D>& slice) const -> dim_t<D>
+    {
+        dim_t<D> result;
+        for (std::size_t d = 0; d < D; ++d)
+        {
+            result[d] = (*this)(dim[d], slice[d]);
+        }
+        return result;
+    }
+};
+
 }  // namespace detail
 
 static constexpr inline auto min = detail::min_fn{};
@@ -339,6 +389,7 @@ static constexpr inline auto bounds = detail::bounds_fn{};
 static constexpr inline auto contains = detail::contains_fn{};
 static constexpr inline auto volume = detail::volume_fn{};
 static constexpr inline auto offset = detail::offset_fn{};
+static constexpr inline auto apply_slice = detail::apply_slice_fn{};
 
 }  // namespace md_v3
 }  // namespace ferrugo
