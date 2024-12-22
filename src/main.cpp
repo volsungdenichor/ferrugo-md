@@ -1,27 +1,40 @@
 #include <array>
+#include <ferrugo/core/std_ostream.hpp>
 #include <ferrugo/md_v3/access.hpp>
+#include <ferrugo/md_v3/array_ref.hpp>
+#include <ferrugo/md_v3/shape_iterator.hpp>
 #include <iostream>
 #include <memory>
 #include <numeric>
 #include <vector>
 
+void print(ferrugo::md_v3::array_ref<int, 1> array)
+{
+    const auto shape = array.shape();
+    std::cout << shape << "\n";
+    std::cout << "min " << ferrugo::md_v3::min(shape) << "\n";
+    std::cout << "max " << ferrugo::md_v3::max(shape) << "\n";
+    std::cout << "lower " << ferrugo::md_v3::lower(shape) << "\n";
+    std::cout << "upper " << ferrugo::md_v3::upper(shape) << "\n";
+    std::cout << "bounds " << ferrugo::md_v3::bounds(shape) << "\n";
+    std::cout << "size " << ferrugo::md_v3::size(shape) << "\n";
+    for (auto loc : ferrugo::md_v3::iter(shape))
+    {
+        std::cout << "loc" << loc << " offset=" << ferrugo::md_v3::offset(shape, loc) << " value=" << array[loc] << "\n";
+    }
+    std::cout << "\n";
+}
+
 void run()
 {
     namespace md = ferrugo::md_v3;
-    // const auto b = md::bounds_t<3>(md::bounds_t<>{ 1, 5 }, md::bounds_t<>{ 2, 6 }, md::bounds_t<>{ 3, 7 });
-    const auto b = md::dim_t<>(10, 2);
-    const auto s = md::slice_t<>(md::_, md::_, -1);
-    std::cout << b << "\n";
-    std::cout << s << "\n";
-    // std::cout << md::min(b) << "\n";
-    std::cout << md::max(b) << "\n";
-    // std::cout << md::lower(b) << "\n";
-    // std::cout << md::upper(b) << "\n";
-    // std::cout << md::size(b) << "\n";
-    // std::cout << md::bounds(b) << "\n";
-    std::cout << md::apply_slice(b, s) << "\n";
-    std::cout << md::apply_slice(md::apply_slice(b, s), s) << "\n";
-    // std::cout << md::stride(b) << "\n";
+    std::vector<int> data;
+    data.resize(100);
+    std::iota(data.begin(), data.end(), 0);
+    md::array_ref<int, 1> array{ data.data(), md::dim_t<1>{ 10, sizeof(int), 0 } };
+    print(array);
+    const auto s = array.slice(md::slice_t<>{ 8, 3, -1 });
+    print(s);
 }
 
 int main()

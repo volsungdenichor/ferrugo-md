@@ -27,7 +27,7 @@ struct tuple_t : public std::array<T, D>
         std::enable_if_t<D_ == 1 && std::is_constructible_v<value_type, Args...>, int> = 0>
     tuple_t(Args&&... args) : base_t{}
     {
-        (*this)[0] = value_type{ std::forward<Args>(args)... };
+        (*this)[0] = value_type(std::forward<Args>(args)...);
     }
 
     template <std::size_t D_ = D, std::enable_if_t<D_ == 1, int> = 0>

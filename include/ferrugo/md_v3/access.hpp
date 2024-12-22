@@ -66,7 +66,7 @@ struct max_fn
 
     auto operator()(const dim_base_t& item) const -> location_base_t
     {
-        return item.min + item.size - 1;
+        return item.min + (item.size - 1) * item.stride;
     }
 
     template <std::size_t D>
@@ -136,7 +136,7 @@ struct upper_fn
 
     auto operator()(const dim_base_t& item) const -> location_base_t
     {
-        return item.min + item.size;
+        return item.min + item.size * item.stride;
     }
 
     template <std::size_t D>
@@ -220,7 +220,7 @@ struct bounds_fn
 
     auto operator()(const dim_base_t& item) const -> bounds_base_t
     {
-        return bounds_base_t{ item.min, item.min + item.size };
+        return bounds_base_t{ lower_fn{}(item), upper_fn{}(item) };
     }
 
     template <std::size_t D>
@@ -278,7 +278,7 @@ struct offset_fn
 {
     auto operator()(const dim_base_t& item, const location_base_t& loc) const -> flat_offset_t
     {
-        return (loc - item.min) * item.stride;
+        return (loc - item.min / -item.stride) * item.stride;
     }
 
     template <std::size_t D>
@@ -351,18 +351,18 @@ struct apply_slice_fn
                       {
                           const auto start = clamp(apply_size(slice.start.value_or(0)), 0);
                           const auto stop = clamp(apply_size(slice.stop.value_or(dim.size)), 0);
-                          const auto new_size = ensure_non_negative((stop - start + step - 1) / step);
-                          return std::tuple{ new_size, start };
+                          const auto size = ensure_non_negative((stop - start + step - 1) / step);
+                          return std::tuple{ size, start };
                       })
                   : std::invoke(
                       [&]() -> std::tuple<location_base_t, location_base_t>
                       {
                           const auto start = clamp(apply_size(slice.start.value_or(dim.size)), -1);
                           const auto stop = clamp(apply_size(slice.stop.value_or(0)), -1);
-                          const auto new_size = ensure_non_negative((stop - start + step) / step);
-                          return std::tuple{ new_size, start };
+                          const auto size = ensure_non_negative((stop - start + step) / step);
+                          return std::tuple{ size, start };
                       });
-        return dim_base_t{ size, dim.stride * step, dim.min + start * dim.stride };
+        return dim_base_t{ std::min(size, dim.size), dim.stride * step, dim.min + start * dim.stride };
     }
 
     template <std::size_t D>
