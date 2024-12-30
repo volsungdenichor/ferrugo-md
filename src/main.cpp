@@ -30,9 +30,9 @@ void run()
     std::vector<int> data;
     data.resize(100);
     std::iota(data.begin(), data.end(), 0);
-    md::array_ref<int, 1> array{ data.data(), md::dim_t<1>{ 10, sizeof(int), 0 } };
+    md::array_ref<int, 1> array{ data.data(), md::dim_t<1>{ 20, sizeof(int), 0 } };
     print(array);
-    const auto s0 = array.slice(md::slice_t<>{ 1, 8, 2 });
+    const auto s0 = array.slice(md::slice_t<>{ 1, md::_, 3 });
     print(s0);
     const auto s1 = s0.slice(md::slice_t<>{ md::_, md::_, -2 });
     print(s1);

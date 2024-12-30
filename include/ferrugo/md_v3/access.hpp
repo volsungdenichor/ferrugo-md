@@ -273,7 +273,7 @@ struct apply_slice_fn
                       {
                           const auto start = clamp(apply_size(slice.start.value_or(dim.size)), -1);
                           const auto stop = clamp(apply_size(slice.stop.value_or(0)), -1);
-                          const auto size = ensure_non_negative((stop - start + step + 1) / step);
+                          const auto size = ensure_non_negative((stop - start + step) / step);
                           return std::tuple{ size, start };
                       });
         return dim_base_t{ std::min(size, dim.size), dim.stride * step, dim.min + dim.stride * start };
