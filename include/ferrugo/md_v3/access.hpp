@@ -11,141 +11,55 @@ namespace md_v3
 namespace detail
 {
 
-struct min_fn
+struct extents_fn
 {
-    auto operator()(const bounds_base_t& item) const -> location_base_t
+    auto operator()(const bounds_base_t& item) const -> std::optional<extents_base_t>
     {
-        return item.lower;
+        if (item.lower == item.upper)
+        {
+            return {};
+        }
+        return extents_base_t{ item.lower, item.upper - 1 };
     }
 
     template <std::size_t D>
-    auto operator()(const bounds_t<D>& item) const -> location_t<D>
+    auto operator()(const bounds_t<D>& item) const -> std::optional<extents_t<D>>
     {
-        location_t<D> result;
+        extents_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
         {
-            result[d] = (*this)(item[d]);
+            const auto res = (*this)(item[d]);
+            if (!res)
+            {
+                return {};
+            }
+            result[d] = *res;
         }
         return result;
     }
 
-    auto operator()(const dim_base_t& item) const -> location_base_t
+    auto operator()(const dim_base_t& item) const -> std::optional<extents_base_t>
     {
-        return item.min;
-    }
-
-    template <std::size_t D>
-    auto operator()(const dim_t<D>& item) const -> location_t<D>
-    {
-        location_t<D> result;
-        for (std::size_t d = 0; d < D; ++d)
+        if (item.size == 0)
         {
-            result[d] = (*this)(item[d]);
+            return {};
         }
-        return result;
-    }
-};
-
-struct max_fn
-{
-    auto operator()(const bounds_base_t& item) const -> location_base_t
-    {
-        return item.upper - 1;
+        return item.stride > 0 ? extents_base_t{ item.min, item.min + item.size - 1 }
+                               : extents_base_t{ item.min, item.min + item.size + 1 };
     }
 
     template <std::size_t D>
-    auto operator()(const bounds_t<D>& item) const -> location_t<D>
+    auto operator()(const dim_t<D>& item) const -> std::optional<extents_t<D>>
     {
-        location_t<D> result;
+        extents_t<D> result;
         for (std::size_t d = 0; d < D; ++d)
         {
-            result[d] = (*this)(item[d]);
-        }
-        return result;
-    }
-
-    auto operator()(const dim_base_t& item) const -> location_base_t
-    {
-        return item.min + (item.size - 1) * item.stride;
-    }
-
-    template <std::size_t D>
-    auto operator()(const dim_t<D>& item) const -> location_t<D>
-    {
-        location_t<D> result;
-        for (std::size_t d = 0; d < D; ++d)
-        {
-            result[d] = (*this)(item[d]);
-        }
-        return result;
-    }
-};
-
-struct lower_fn
-{
-    auto operator()(const bounds_base_t& item) const -> location_base_t
-    {
-        return item.lower;
-    }
-
-    template <std::size_t D>
-    auto operator()(const bounds_t<D>& item) const -> location_t<D>
-    {
-        location_t<D> result;
-        for (std::size_t d = 0; d < D; ++d)
-        {
-            result[d] = (*this)(item[d]);
-        }
-        return result;
-    }
-
-    auto operator()(const dim_base_t& item) const -> location_base_t
-    {
-        return item.min;
-    }
-
-    template <std::size_t D>
-    auto operator()(const dim_t<D>& item) const -> location_t<D>
-    {
-        location_t<D> result;
-        for (std::size_t d = 0; d < D; ++d)
-        {
-            result[d] = (*this)(item[d]);
-        }
-        return result;
-    }
-};
-
-struct upper_fn
-{
-    auto operator()(const bounds_base_t& item) const -> location_base_t
-    {
-        return item.upper;
-    }
-
-    template <std::size_t D>
-    auto operator()(const bounds_t<D>& item) const -> location_t<D>
-    {
-        location_t<D> result;
-        for (std::size_t d = 0; d < D; ++d)
-        {
-            result[d] = (*this)(item[d]);
-        }
-        return result;
-    }
-
-    auto operator()(const dim_base_t& item) const -> location_base_t
-    {
-        return item.min + item.size * item.stride;
-    }
-
-    template <std::size_t D>
-    auto operator()(const dim_t<D>& item) const -> location_t<D>
-    {
-        location_t<D> result;
-        for (std::size_t d = 0; d < D; ++d)
-        {
-            result[d] = (*this)(item[d]);
+            const auto res = (*this)(item[d]);
+            if (!res)
+            {
+                return {};
+            }
+            result[d] = *res;
         }
         return result;
     }
@@ -220,7 +134,7 @@ struct bounds_fn
 
     auto operator()(const dim_base_t& item) const -> bounds_base_t
     {
-        return bounds_base_t{ lower_fn{}(item), upper_fn{}(item) };
+        return bounds_base_t{ item.min, item.min + item.size };
     }
 
     template <std::size_t D>
@@ -239,7 +153,7 @@ struct contains_fn
 {
     auto operator()(const bounds_base_t& item, const location_base_t& loc) const -> bool
     {
-        return lower_fn{}(item) <= loc && loc < upper_fn{}(item);
+        return item.lower <= loc && loc < item.upper;
     }
 
     template <std::size_t D>
@@ -257,7 +171,7 @@ struct contains_fn
 
     auto operator()(const dim_base_t& item, const location_base_t& loc) const -> bool
     {
-        return lower_fn{}(item) <= loc && loc < upper_fn{}(item);
+        return item.min <= loc && loc < (item.min + item.size);
     }
 
     template <std::size_t D>
@@ -278,7 +192,8 @@ struct offset_fn
 {
     auto operator()(const dim_base_t& item, const location_base_t& loc) const -> flat_offset_t
     {
-        return (loc - item.min / -item.stride) * item.stride;
+        // return (loc - item.min) * item.stride;
+        return item.min + loc * item.stride;
     }
 
     template <std::size_t D>
@@ -338,9 +253,8 @@ struct apply_slice_fn
         {
             throw std::runtime_error{ "step cannot be zero" };
         }
-
+        static const auto ensure_non_negative = [](location_base_t v) { return std::max(location_base_t(0), v); };
         const auto apply_size = [&](location_base_t v) { return v < 0 ? v + dim.size : v; };
-        const auto ensure_non_negative = [](location_base_t v) { return std::max(location_base_t(0), v); };
         const auto clamp = [&](location_base_t v, location_base_t shift)
         { return std::max(location_base_t(shift), std::min(v, dim.size + shift)); };
 
@@ -359,10 +273,10 @@ struct apply_slice_fn
                       {
                           const auto start = clamp(apply_size(slice.start.value_or(dim.size)), -1);
                           const auto stop = clamp(apply_size(slice.stop.value_or(0)), -1);
-                          const auto size = ensure_non_negative((stop - start + step) / step);
+                          const auto size = ensure_non_negative((stop - start + step + 1) / step);
                           return std::tuple{ size, start };
                       });
-        return dim_base_t{ std::min(size, dim.size), dim.stride * step, dim.min + start * dim.stride };
+        return dim_base_t{ std::min(size, dim.size), dim.stride * step, dim.min + dim.stride * start };
     }
 
     template <std::size_t D>
@@ -379,10 +293,7 @@ struct apply_slice_fn
 
 }  // namespace detail
 
-static constexpr inline auto min = detail::min_fn{};
-static constexpr inline auto max = detail::max_fn{};
-static constexpr inline auto lower = detail::lower_fn{};
-static constexpr inline auto upper = detail::upper_fn{};
+static constexpr inline auto extents = detail::extents_fn{};
 static constexpr inline auto size = detail::size_fn{};
 static constexpr inline auto stride = detail::stride_fn{};
 static constexpr inline auto bounds = detail::bounds_fn{};

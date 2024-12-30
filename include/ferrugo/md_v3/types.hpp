@@ -63,6 +63,35 @@ using location_base_t = std::ptrdiff_t;
 using flat_offset_t = std::ptrdiff_t;
 using volume_t = std::ptrdiff_t;
 
+struct extents_base_t
+{
+    location_base_t min;
+    location_base_t max;
+
+    extents_base_t() = default;
+
+    extents_base_t(location_base_t min, location_base_t max) : min(min), max(max)
+    {
+    }
+
+    friend bool operator==(const extents_base_t& lhs, const extents_base_t& rhs)
+    {
+        return std::tie(lhs.min, lhs.max) == std::tie(rhs.min, rhs.max);
+    }
+
+    friend bool operator!=(const extents_base_t& lhs, const extents_base_t& rhs)
+    {
+        return !(lhs == rhs);
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const extents_base_t& item)
+    {
+        return os << "("
+                  << "(min " << item.min << ")"
+                  << "(max " << item.max << "))";
+    }
+};
+
 struct bounds_base_t
 {
     location_base_t lower;
@@ -86,7 +115,9 @@ struct bounds_base_t
 
     friend std::ostream& operator<<(std::ostream& os, const bounds_base_t& item)
     {
-        return os << "(" << item.lower << " " << item.upper << ")";
+        return os << "("
+                  << "(lower " << item.lower << ")"
+                  << "(upper " << item.upper << "))";
     }
 };
 
@@ -114,7 +145,10 @@ struct dim_base_t
 
     friend std::ostream& operator<<(std::ostream& os, const dim_base_t& item)
     {
-        return os << "(" << item.size << " " << item.stride << " " << item.min << ")";
+        return os << "("
+                  << "(size " << item.size << ")"
+                  << "(stride " << item.stride << ")"
+                  << "(min " << item.min << "))";
     }
 };
 
@@ -162,6 +196,9 @@ struct slice_base_t
 
 template <std::size_t D = 1>
 using location_t = tuple_t<location_base_t, D>;
+
+template <std::size_t D = 1>
+using extents_t = tuple_t<extents_base_t, D>;
 
 template <std::size_t D = 1>
 using bounds_t = tuple_t<bounds_base_t, D>;
