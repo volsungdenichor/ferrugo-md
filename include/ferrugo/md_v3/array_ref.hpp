@@ -64,6 +64,33 @@ public:
         return array_ref{ get(), apply_slice(m_shape, slices) };
     }
 
+    template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
+    auto subslice(std::size_t dim, location_base_t n) const -> array_ref<T, D - 1>
+    {
+        const auto loc = std::invoke(
+            [&]() -> location_type
+            {
+                location_type res = {};
+                std::fill(std::begin(res), std::end(res), 0);
+                res[dim] = n;
+                return res;
+            });
+
+        return array_ref<T, D - 1>{ get(loc), m_shape.erase(dim) };
+    }
+
+    template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
+    auto operator[](location_base_t n) const -> array_ref<T, D_ - 1>
+    {
+        return subslice(0, n);
+    }
+
+    template <std::size_t D_ = D, std::enable_if_t<(D_ == 1), int> = 0>
+    auto operator[](location_base_t n) const -> reference
+    {
+        return (*this)[location_t<1>{ n }];
+    }
+
 private:
     byte* m_ptr;
     shape_type m_shape;

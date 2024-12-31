@@ -39,10 +39,16 @@ void run()
     const auto s1 = s0.slice(md::slice_t<>{ md::_, md::_, -2 });
     print(s1);
 
-    const auto img = md::load_bitmap("/mnt/d/Users/Krzysiek/Pictures/hippie.bmp");
-    auto copy = img.ref().slice(md::slice_t<3>(
-        md::slice_t<>{ md::_, md::_, md::_ }, md::slice_t<>{ md::_, md::_, -1 }, md::slice_t<>{ 1, 2, md::_ }));
-    md::save_bitmap(copy, "/mnt/d/Users/Krzysiek/Pictures/hippie_out.bmp");
+    using namespace std::string_literals;
+
+    const auto directory = "/mnt/d/Users/Krzysiek/Pictures/"s;
+
+    auto img = md::load_bitmap(directory + "hippie.bmp");
+    // auto copy = img.ref().slice(md::slice_t<3>(
+    //     md::slice_t<>{ md::_, md::_, md::_ }, md::slice_t<>{ md::_, md::_, -1 }, md::slice_t<>{ md::_, md::_, md::_ }));
+    auto copy = img.mut_ref();
+    copy[10][10][0] = 255;
+    md::save_bitmap(copy, directory + "hippie_out.bmp");
 }
 
 int main()
