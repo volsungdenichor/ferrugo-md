@@ -60,14 +60,16 @@ struct bmp_header
         write<std::uint32_t>(os, data_offset);
     }
 
-    void load(std::istream& is)
+    static auto load(std::istream& is) -> bmp_header
     {
-        read<std::uint8_t>(is);                /* B */
-        read<std::uint8_t>(is);                /* M */
-        file_size = read<std::uint32_t>(is);   /**/
-        read<std::uint16_t>(is);               /* reserved1 */
-        read<std::uint16_t>(is);               /* reserved2 */
-        data_offset = read<std::uint32_t>(is); /* data_offset */
+        bmp_header result = {};
+        read<std::uint8_t>(is);                       /* B */
+        read<std::uint8_t>(is);                       /* M */
+        result.file_size = read<std::uint32_t>(is);   /**/
+        read<std::uint16_t>(is);                      /* reserved1 */
+        read<std::uint16_t>(is);                      /* reserved2 */
+        result.data_offset = read<std::uint32_t>(is); /* data_offset */
+        return result;
     }
 };
 
@@ -115,19 +117,21 @@ struct dib_header
         write<std::uint32_t>(os, important_color_count);
     }
 
-    void load(std::istream& is)
+    static auto load(std::istream& is) -> dib_header
     {
+        dib_header result = {};
         read<std::uint32_t>(is); /* size */
-        width = read<std::uint32_t>(is);
-        height = read<std::uint32_t>(is);
-        color_plane_count = read<std::uint16_t>(is);
-        bits_per_pixel = read<std::uint16_t>(is);
-        compression = read<std::uint32_t>(is);
-        data_size = read<std::uint32_t>(is);
-        horizontal_pixel_per_meter = read<std::uint32_t>(is);
-        vertical_pixel_per_meter = read<std::uint32_t>(is);
-        color_count = read<std::uint32_t>(is);
-        important_color_count = read<std::uint32_t>(is);
+        result.width = read<std::uint32_t>(is);
+        result.height = read<std::uint32_t>(is);
+        result.color_plane_count = read<std::uint16_t>(is);
+        result.bits_per_pixel = read<std::uint16_t>(is);
+        result.compression = read<std::uint32_t>(is);
+        result.data_size = read<std::uint32_t>(is);
+        result.horizontal_pixel_per_meter = read<std::uint32_t>(is);
+        result.vertical_pixel_per_meter = read<std::uint32_t>(is);
+        result.color_count = read<std::uint32_t>(is);
+        result.important_color_count = read<std::uint32_t>(is);
+        return result;
     }
 };
 
@@ -243,11 +247,8 @@ struct load_bitmap_fn
             throw std::runtime_error{ "load_bitmap: invalid stream" };
         }
 
-        detail::bmp_header bmp_hdr;
-        detail::dib_header dib_hdr;
-
-        bmp_hdr.load(is);
-        dib_hdr.load(is);
+        const detail::bmp_header bmp_hdr = detail::bmp_header::load(is);
+        const detail::dib_header dib_hdr = detail::dib_header::load(is);
 
         switch (dib_hdr.bits_per_pixel)
         {

@@ -27,27 +27,20 @@ void print(ferrugo::md_v3::array_ref<int, 1> array)
 
 void run()
 {
-    namespace md = ferrugo::md_v3;
-    std::cout << md::location_t<5>(2, 3, 5, 1, 2).erase(4) << "\n";
-    std::vector<int> data;
-    data.resize(100);
-    std::iota(data.begin(), data.end(), 0);
-    md::array_ref<int, 1> array{ data.data(), md::dim_t<1>{ 20, sizeof(int), 0 } };
-    print(array);
-    const auto s0 = array.slice(md::slice_t<>{ 1, md::_, 3 });
-    print(s0);
-    const auto s1 = s0.slice(md::slice_t<>{ md::_, md::_, -2 });
-    print(s1);
-
     using namespace std::string_literals;
+    namespace md = ferrugo::md_v3;
 
     const auto directory = "/mnt/d/Users/Krzysiek/Pictures/"s;
 
     auto img = md::load_bitmap(directory + "hippie.bmp");
-    // auto copy = img.ref().slice(md::slice_t<3>(
-    //     md::slice_t<>{ md::_, md::_, md::_ }, md::slice_t<>{ md::_, md::_, -1 }, md::slice_t<>{ md::_, md::_, md::_ }));
-    auto copy = img.mut_ref();
-    copy[-1][-2][0] = 255;
+    auto copy = img.mut_ref().slice(md::slice_t<3>(
+        md::slice_t<>{ md::_, -100, md::_ }, md::slice_t<>{ md::_, md::_, -1 }, md::slice_t<>{ md::_, md::_, md::_ }));
+
+    for (auto loc : md::iter(copy.shape()))
+    {
+        copy[loc] = 255 - copy[loc];
+    }
+
     md::save_bitmap(copy, directory + "hippie_out.bmp");
 }
 
