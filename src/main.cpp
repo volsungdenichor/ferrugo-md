@@ -1,7 +1,8 @@
 #include <array>
 #include <ferrugo/core/std_ostream.hpp>
 #include <ferrugo/md_v3/access.hpp>
-#include <ferrugo/md_v3/array_ref.hpp>
+#include <ferrugo/md_v3/array.hpp>
+#include <ferrugo/md_v3/bitmap.hpp>
 #include <ferrugo/md_v3/shape_iterator.hpp>
 #include <iostream>
 #include <memory>
@@ -27,6 +28,7 @@ void print(ferrugo::md_v3::array_ref<int, 1> array)
 void run()
 {
     namespace md = ferrugo::md_v3;
+    std::cout << md::location_t<5>(2, 3, 5, 1, 2).erase(4) << "\n";
     std::vector<int> data;
     data.resize(100);
     std::iota(data.begin(), data.end(), 0);
@@ -36,6 +38,11 @@ void run()
     print(s0);
     const auto s1 = s0.slice(md::slice_t<>{ md::_, md::_, -2 });
     print(s1);
+
+    const auto img = md::load_bitmap("/mnt/d/Users/Krzysiek/Pictures/hippie.bmp");
+    auto copy = img.ref().slice(md::slice_t<3>(
+        md::slice_t<>{ md::_, md::_, md::_ }, md::slice_t<>{ md::_, md::_, -1 }, md::slice_t<>{ 1, 2, md::_ }));
+    md::save_bitmap(copy, "/mnt/d/Users/Krzysiek/Pictures/hippie_out.bmp");
 }
 
 int main()

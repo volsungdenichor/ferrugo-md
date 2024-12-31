@@ -42,6 +42,21 @@ struct tuple_t : public std::array<T, D>
         static_assert(sizeof...(tail) + 1 == D, "all values required to be set");
     }
 
+    template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
+    auto erase(std::size_t i) const -> tuple_t<T, D - 1>
+    {
+        tuple_t<T, D - 1> result;
+        for (std::size_t d = 0; d < i; ++d)
+        {
+            result[d + 0] = (*this)[d];
+        }
+        for (std::size_t d = i + 1; d < D_; ++d)
+        {
+            result[d - 1] = (*this)[d];
+        }
+        return result;
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const tuple_t& item)
     {
         os << "(";
