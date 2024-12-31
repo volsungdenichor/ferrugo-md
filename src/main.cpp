@@ -47,7 +47,7 @@ void run()
     // auto copy = img.ref().slice(md::slice_t<3>(
     //     md::slice_t<>{ md::_, md::_, md::_ }, md::slice_t<>{ md::_, md::_, -1 }, md::slice_t<>{ md::_, md::_, md::_ }));
     auto copy = img.mut_ref();
-    copy[10][10][0] = 255;
+    copy[-1][-2][0] = 255;
     md::save_bitmap(copy, directory + "hippie_out.bmp");
 }
 

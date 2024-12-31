@@ -67,12 +67,17 @@ public:
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
     auto subslice(std::size_t dim, location_base_t n) const -> array_ref<T, D - 1>
     {
+        const location_base_t actual_n = n > 0 ? n : m_shape[dim].size + n;
+        if (!(0 <= actual_n && actual_n < m_shape[dim].size))
+        {
+            throw std::out_of_range("out of range");
+        }
         const auto loc = std::invoke(
             [&]() -> location_type
             {
                 location_type res = {};
                 std::fill(std::begin(res), std::end(res), 0);
-                res[dim] = n;
+                res[dim] = actual_n;
                 return res;
             });
 
