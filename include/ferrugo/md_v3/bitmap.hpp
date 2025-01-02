@@ -165,11 +165,7 @@ inline void save_header(
 
 inline auto prepare_array(const dib_header& header) -> array<byte, 3>
 {
-    const auto shape = dim_t<3>{ dim_t<>{ header.height, 3 * header.width },  //
-                                 dim_t<>{ header.width, 3 },                  //
-                                 dim_t<>{ 3, 1 } };
-
-    return array<byte, 3>{ shape, std::vector<byte>(volume(shape)) };
+    return array<byte, 3>{ size_t<3>{ static_cast<size_base_t>(header.height), static_cast<size_base_t>(header.width), 3 } };
 }
 
 inline auto load_bitmap_8(std::istream& is, const dib_header& header) -> array<byte, 3>
@@ -273,8 +269,8 @@ struct save_bitmap_fn
 {
     void operator()(array_ref<const byte, 2> image, std::ostream& os) const
     {
-        static const size_t bits_per_pixel = 8;
-        size_t padding = detail::get_padding(image.shape().at(1).size, bits_per_pixel);
+        static const std::size_t bits_per_pixel = 8;
+        const std::size_t padding = detail::get_padding(image.shape().at(1).size, bits_per_pixel);
 
         const auto h = image.shape().at(0).size;
         const auto w = image.shape().at(1).size;
@@ -304,8 +300,8 @@ struct save_bitmap_fn
 
     void operator()(array_ref<const byte, 3> image, std::ostream& os) const
     {
-        static const size_t bits_per_pixel = 24;
-        const size_t padding = detail::get_padding(image.shape().at(1).size, bits_per_pixel);
+        static const std::size_t bits_per_pixel = 24;
+        const std::size_t padding = detail::get_padding(image.shape().at(1).size, bits_per_pixel);
 
         const auto h = image.shape().at(0).size;
         const auto w = image.shape().at(1).size;

@@ -7,6 +7,21 @@ namespace ferrugo
 namespace md_v3
 {
 
+template <std::size_t D>
+auto create_shape(const size_t<D>& size) -> dim_t<D>
+{
+    dim_t<D> result = {};
+    location_base_t stride = 1;
+    for (int d = D - 1; d >= 0; --d)
+    {
+        result[d].size = size[d];
+        result[d].stride = stride;
+        result[d].min = 0;
+        stride *= size[d];
+    }
+    return result;
+}
+
 template <class T, std::size_t D>
 class array
 {
@@ -23,6 +38,11 @@ public:
 
     array(const shape_type& shape, data_type data) : m_shape{ shape }, m_data(std::move(data))
     {
+    }
+
+    array(const size_t<D>& size) : m_shape{ create_shape(size) }, m_data{}
+    {
+        m_data.reserve(volume(m_shape));
     }
 
     const shape_type& shape() const

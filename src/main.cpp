@@ -34,11 +34,11 @@ void run()
 
     auto img = md::load_bitmap(directory + "hippie.bmp");
     auto copy = img.mut_ref().slice(md::slice_t<3>(
-        md::slice_t<>{ md::_, -100, md::_ }, md::slice_t<>{ md::_, md::_, -1 }, md::slice_t<>{ md::_, md::_, md::_ }));
+        md::slice_t<>{ 50, -100, md::_ }, md::slice_t<>{ md::_, md::_, -1 }, md::slice_t<>{ md::_, md::_, md::_ }));
 
     for (auto loc : md::iter(copy.shape()))
     {
-        copy[loc] = 255 - copy[loc];
+        copy[loc] = 255 - copy[loc] / 2;
     }
 
     md::save_bitmap(copy, directory + "hippie_out.bmp");

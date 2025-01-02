@@ -74,6 +74,7 @@ struct tuple_t : public std::array<T, D>
 };
 
 using location_base_t = std::ptrdiff_t;
+using size_base_t = location_base_t;
 
 using flat_offset_t = std::ptrdiff_t;
 using volume_t = std::ptrdiff_t;
@@ -211,6 +212,9 @@ struct slice_base_t
 
 template <std::size_t D = 1>
 using location_t = tuple_t<location_base_t, D>;
+
+template <std::size_t D = 1>
+using size_t = tuple_t<size_base_t, D>;
 
 template <std::size_t D = 1>
 using extents_t = tuple_t<extents_base_t, D>;
