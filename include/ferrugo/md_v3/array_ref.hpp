@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstdint>
 #include <ferrugo/md_v3/access.hpp>
+#include <ferrugo/md_v3/ref_iterator.hpp>
 #include <ferrugo/md_v3/shape_iterator.hpp>
 #include <ferrugo/md_v3/types.hpp>
 #include <functional>
@@ -10,8 +10,6 @@ namespace ferrugo
 {
 namespace md_v3
 {
-
-using byte = std::uint8_t;
 
 template <class T, std::size_t D>
 class array_ref
@@ -23,6 +21,7 @@ public:
     using slice_type = slice_t<D>;
     using reference = T&;
     using pointer = T*;
+    using iterator = detail::ref_iterator<T, D>;
 
     array_ref(pointer ptr, shape_type shape) : m_ptr{ (byte*)ptr }, m_shape{ std::move(shape) }
     {
@@ -41,6 +40,18 @@ public:
     const shape_type& shape() const
     {
         return m_shape;
+    }
+
+    auto begin() const -> iterator
+    {
+        return iterator{ m_ptr, m_shape, location_t<D>{} };
+    }
+
+    auto end() const -> iterator
+    {
+        location_t<D> last = {};
+        last[D - 1] = m_shape[D - 1].size;
+        return iterator{ m_ptr, m_shape, last };
     }
 
     auto get() const -> pointer

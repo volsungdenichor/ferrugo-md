@@ -4,6 +4,7 @@
 #include <ferrugo/md_v3/array.hpp>
 #include <ferrugo/md_v3/bitmap.hpp>
 #include <ferrugo/md_v3/shape_iterator.hpp>
+#include <ferrugo/md_v3/transformations.hpp>
 #include <iostream>
 #include <memory>
 #include <numeric>
@@ -33,13 +34,11 @@ void run()
     const auto directory = "/mnt/d/Users/Krzysiek/Pictures/"s;
 
     auto img = md::load_bitmap(directory + "hippie.bmp");
-    auto copy = img.mut_ref().slice(md::slice_t<3>(
-        md::slice_t<>{ 50, -100, md::_ }, md::slice_t<>{ md::_, md::_, -1 }, md::slice_t<>{ md::_, md::_, md::_ }));
+    auto copy = md::swap_axes(0, 1)(img.mut_ref())
+                    .slice(md::slice_t<3>{
+                        md::slice_t<>{ md::_, md::_, -1 }, md::slice_t<>{ md::_, md::_, -1 }, md::slice_t<>{} });
 
-    for (auto loc : md::iter(copy.shape()))
-    {
-        copy[loc] = 255 - copy[loc] / 2;
-    }
+    std::transform(std::begin(copy), std::end(copy), std::begin(copy), [](md::byte v) { return 255 - v; });
 
     md::save_bitmap(copy, directory + "hippie_out.bmp");
 }
