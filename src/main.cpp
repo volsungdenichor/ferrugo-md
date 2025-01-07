@@ -28,24 +28,39 @@ void print(ferrugo::md_v3::array_ref<int, 1> array)
     std::cout << "\n";
 }
 
-void apply(
-    ferrugo::md_v3::array_ref<const ferrugo::md_v3::byte, 3> source,
-    ferrugo::md_v3::array_ref<ferrugo::md_v3::byte, 3> dest,
-    const std::function<ferrugo::md_v3::transform_fn(const ferrugo::md_v3::histogram_t&)>& func)
+namespace ferrugo
+{
+
+namespace md_v3
+{
+
+void apply_histogram(
+    array_ref<const byte, 3> source,  //
+    array_ref<byte, 3> dest,
+    const std::function<transform_fn(const histogram_t&)>& func)
 {
     for (int c = 0; c < 3; ++c)
     {
-        const auto source_channel = source.subslice(2, c);
-        const auto dest_channel = dest.subslice(2, c);
+        const auto channel = slice_t<3>{ slice_t<>{}, slice_t<>{}, at(c) };
+        const auto source_channel = source.slice(channel);
+        const auto dest_channel = dest.slice(channel);
 
-        const auto histogram = ferrugo::md_v3::make_histogram(source_channel);
-        const auto transform = func(histogram);
-
-        const auto lut = ferrugo::md_v3::lut_t{ transform };
+        const auto histogram = make_histogram(source_channel);
+        const auto lut = lut_t{ func(histogram) };
 
         std::transform(std::begin(source_channel), std::end(source_channel), std::begin(dest_channel), lut);
     }
 }
+
+void apply_histogram(
+    array_ref<byte, 3> image,  //
+    const std::function<transform_fn(const histogram_t&)>& func)
+{
+    apply_histogram(image.as_const(), image, func);
+}
+
+}  // namespace md_v3
+}  // namespace ferrugo
 
 void run()
 {
@@ -61,7 +76,7 @@ void run()
 
     // std::transform(std::begin(copy), std::end(copy), std::begin(copy), lut);
 
-    apply(copy.as_const(), copy, ferrugo::md_v3::equalize);
+    apply_histogram(copy, ferrugo::md_v3::otsu);
 
     md::save_bitmap(copy, directory + "hippie_out.bmp");
 }
