@@ -1,14 +1,11 @@
 #pragma once
 
-#include <cstdint>
 #include <ferrugo/md_v3/shape_iterator.hpp>
 
 namespace ferrugo
 {
 namespace md_v3
 {
-
-using byte = std::uint8_t;
 
 namespace detail
 {

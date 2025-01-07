@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <iostream>
 #include <optional>
 
@@ -9,6 +10,8 @@ namespace ferrugo
 {
 namespace md_v3
 {
+
+using byte = std::uint8_t;
 
 template <class T, std::size_t D>
 struct tuple_t : public std::array<T, D>
