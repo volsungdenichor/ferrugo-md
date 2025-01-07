@@ -45,6 +45,12 @@ public:
         m_data.reserve(volume(m_shape));
     }
 
+    template <class U>
+    array(const array_ref<U, D>& other) : array(size(other.shape()))
+    {
+        std::copy(other.begin(), other.end(), mut_ref().begin());
+    }
+
     const shape_type& shape() const
     {
         return m_shape;

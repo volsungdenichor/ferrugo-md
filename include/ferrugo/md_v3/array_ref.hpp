@@ -5,6 +5,7 @@
 #include <ferrugo/md_v3/shape_iterator.hpp>
 #include <ferrugo/md_v3/types.hpp>
 #include <functional>
+#include <sstream>
 
 namespace ferrugo
 {
@@ -78,10 +79,13 @@ public:
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
     auto subslice(std::size_t dim, location_base_t n) const -> array_ref<T, D - 1>
     {
-        const location_base_t actual_n = n > 0 ? n : m_shape[dim].size + n;
+        const location_base_t actual_n = n >= 0 ? n : m_shape[dim].size + n;
         if (!(0 <= actual_n && actual_n < m_shape[dim].size))
         {
-            throw std::out_of_range("out of range");
+            std::stringstream ss;
+            ss << "out of range: "
+               << "n=" << actual_n << " size=" << m_shape[dim].size;
+            throw std::out_of_range(ss.str());
         }
         const auto loc = std::invoke(
             [&]() -> location_type
@@ -105,6 +109,13 @@ public:
     auto operator[](location_base_t n) const -> reference
     {
         return (*this)[location_t<1>{ n }];
+    }
+
+    template <class T_ = T, std::enable_if_t<!std::is_const_v<T_>, int> = 0>
+    auto operator=(T_ value) -> array_ref&
+    {
+        std::fill(begin(), end(), value);
+        return *this;
     }
 
 private:
