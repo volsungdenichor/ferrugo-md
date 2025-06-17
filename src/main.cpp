@@ -35,8 +35,8 @@ namespace md_v3
 {
 
 void apply_histogram(
-    array_ref<const byte, 3> source,  //
     array_ref<byte, 3> dest,
+    array_ref<const byte, 3> source,  //
     const std::function<transform_fn(const histogram_t&)>& func)
 {
     for (int c = 0; c < 3; ++c)
@@ -56,7 +56,7 @@ void apply_histogram(
     array_ref<byte, 3> image,  //
     const std::function<transform_fn(const histogram_t&)>& func)
 {
-    apply_histogram(image.as_const(), image, func);
+    apply_histogram(image, image.as_const(), func);
 }
 
 }  // namespace md_v3
@@ -72,11 +72,13 @@ void run()
     auto img = md::load_bitmap(directory + "hippie.bmp");
     auto copy = img.mut_ref();
 
-    // const auto lut = md::lut_t{ md::stretch(histogram) };
+    std::cout << " shape " << img.shape() << "\n";
+    std::cout << " extents " << md::extents(img.shape()) << "\n";
+    std::cout << " bounds " << md::bounds(img.shape()) << "\n";
+    std::cout << " size " << md::size(img.shape()) << "\n";
+    std::cout << " volume " << md::volume(img.shape()) << "\n";
 
-    // std::transform(std::begin(copy), std::end(copy), std::begin(copy), lut);
-
-    apply_histogram(copy, ferrugo::md_v3::otsu);
+    apply_histogram(copy, md::equalize);
 
     md::save_bitmap(copy, directory + "hippie_out.bmp");
 }

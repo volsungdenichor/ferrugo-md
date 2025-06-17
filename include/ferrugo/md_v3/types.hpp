@@ -62,7 +62,7 @@ struct tuple_t : public std::array<T, D>
 
     friend std::ostream& operator<<(std::ostream& os, const tuple_t& item)
     {
-        os << "(";
+        os << "[";
         for (std::size_t d = 0; d < D; ++d)
         {
             if (d != 0)
@@ -71,7 +71,7 @@ struct tuple_t : public std::array<T, D>
             }
             os << item[d];
         }
-        os << ")";
+        os << "]";
         return os;
     }
 };
@@ -105,9 +105,9 @@ struct extents_base_t
 
     friend std::ostream& operator<<(std::ostream& os, const extents_base_t& item)
     {
-        return os << "("
-                  << "(min " << item.min << ")"
-                  << "(max " << item.max << "))";
+        return os << "{"
+                  << ":min " << item.min << " "
+                  << ":max " << item.max << "}";
     }
 };
 
@@ -134,9 +134,9 @@ struct bounds_base_t
 
     friend std::ostream& operator<<(std::ostream& os, const bounds_base_t& item)
     {
-        return os << "("
-                  << "(lower " << item.lower << ")"
-                  << "(upper " << item.upper << "))";
+        return os << "{"
+                  << ":lower " << item.lower << " "
+                  << ":upper " << item.upper << "}";
     }
 };
 
@@ -164,10 +164,10 @@ struct dim_base_t
 
     friend std::ostream& operator<<(std::ostream& os, const dim_base_t& item)
     {
-        return os << "("
-                  << "(size " << item.size << ")"
-                  << "(stride " << item.stride << ")"
-                  << "(min " << item.min << "))";
+        return os << "{"
+                  << ":size " << item.size << " "
+                  << ":stride " << item.stride << " "
+                  << ":min " << item.min << "}";
     }
 };
 
