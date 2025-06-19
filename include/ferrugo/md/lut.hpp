@@ -1,12 +1,12 @@
 #pragma once
 
 #include <cmath>
-#include <ferrugo/md_v3/types.hpp>
+#include <ferrugo/md/types.hpp>
 #include <functional>
 
 namespace ferrugo
 {
-namespace md_v3
+namespace md
 {
 
 struct transform_fn : public std::function<int(int)>
@@ -118,5 +118,5 @@ inline auto gamma(float value) -> transform_fn
     return levels_adjustment({ 0, 255 }, { 0, 255 }, value);
 }
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <ferrugo/md_v3/location_iterator.hpp>
+#include <ferrugo/md/location_iterator.hpp>
 
 namespace ferrugo
 {
-namespace md_v3
+namespace md
 {
 
 namespace detail
@@ -58,5 +58,5 @@ using element_iterator = core::iterator_interface<element_iter<T, D>>;
 
 }  // namespace detail
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo

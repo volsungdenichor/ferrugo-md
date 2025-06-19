@@ -1,10 +1,10 @@
 #pragma once
 
-#include <ferrugo/md_v3/array_ref.hpp>
+#include <ferrugo/md/array_ref.hpp>
 
 namespace ferrugo
 {
-namespace md_v3
+namespace md
 {
 
 namespace detail
@@ -36,5 +36,5 @@ struct swap_axes_fn
 
 static constexpr inline auto swap_axes = detail::swap_axes_fn{};
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo

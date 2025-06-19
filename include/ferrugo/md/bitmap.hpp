@@ -1,12 +1,12 @@
 #pragma once
 
 #include <cstdint>
-#include <ferrugo/md_v3/array.hpp>
+#include <ferrugo/md/array.hpp>
 #include <fstream>
 
 namespace ferrugo
 {
-namespace md_v3
+namespace md
 {
 
 namespace detail
@@ -339,5 +339,5 @@ struct save_bitmap_fn
 static constexpr inline auto load_bitmap = detail::load_bitmap_fn{};
 static constexpr inline auto save_bitmap = detail::save_bitmap_fn{};
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo

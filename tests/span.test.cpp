@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_all.hpp>
 #include <ferrugo/core/ostream_utils.hpp>
 #include <ferrugo/core/std_ostream.hpp>
-#include <ferrugo/md_v3/array.hpp>
+#include <ferrugo/md/array.hpp>
 
 namespace std
 {

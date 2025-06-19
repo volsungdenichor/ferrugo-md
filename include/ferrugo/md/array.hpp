@@ -1,10 +1,10 @@
 #pragma once
 
-#include <ferrugo/md_v3/array_ref.hpp>
+#include <ferrugo/md/array_ref.hpp>
 
 namespace ferrugo
 {
-namespace md_v3
+namespace md
 {
 
 template <std::size_t D>
@@ -71,5 +71,5 @@ private:
     data_type m_data;
 };
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo

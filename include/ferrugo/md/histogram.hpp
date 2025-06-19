@@ -1,12 +1,12 @@
 #pragma once
 
-#include <ferrugo/md_v3/lut.hpp>
-#include <ferrugo/md_v3/types.hpp>
+#include <ferrugo/md/lut.hpp>
+#include <ferrugo/md/types.hpp>
 #include <numeric>
 
 namespace ferrugo
 {
-namespace md_v3
+namespace md
 {
 
 using histogram_t = std::array<std::size_t, 256>;
@@ -160,5 +160,5 @@ static constexpr inline auto stretch = detail::stretch_fn{};
 static constexpr inline auto equalize = detail::equalize_fn{};
 static constexpr inline auto otsu = detail::otsu_fn{};
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo

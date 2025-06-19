@@ -2,12 +2,12 @@
 
 #include <ferrugo/core/iterator_interface.hpp>
 #include <ferrugo/core/subrange.hpp>
-#include <ferrugo/md_v3/access.hpp>
-#include <ferrugo/md_v3/types.hpp>
+#include <ferrugo/md/access.hpp>
+#include <ferrugo/md/types.hpp>
 
 namespace ferrugo
 {
-namespace md_v3
+namespace md
 {
 
 namespace detail
@@ -77,5 +77,5 @@ struct iterate_locations_fn
 using detail::location_iterator;
 static constexpr inline auto locations = detail::iterate_locations_fn{};
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo

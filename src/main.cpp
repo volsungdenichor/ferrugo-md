@@ -1,19 +1,19 @@
 #include <array>
 #include <ferrugo/core/std_ostream.hpp>
-#include <ferrugo/md_v3/access.hpp>
-#include <ferrugo/md_v3/array.hpp>
-#include <ferrugo/md_v3/bitmap.hpp>
-#include <ferrugo/md_v3/histogram.hpp>
-#include <ferrugo/md_v3/lut.hpp>
-#include <ferrugo/md_v3/transformations.hpp>
+#include <ferrugo/md/access.hpp>
+#include <ferrugo/md/array.hpp>
+#include <ferrugo/md/bitmap.hpp>
+#include <ferrugo/md/histogram.hpp>
+#include <ferrugo/md/lut.hpp>
+#include <ferrugo/md/transformations.hpp>
 #include <iostream>
 #include <memory>
 #include <numeric>
 #include <vector>
 
-void print(ferrugo::md_v3::array_ref<int, 1> array)
+void print(ferrugo::md::array_ref<int, 1> array)
 {
-    using namespace ferrugo::md_v3;
+    using namespace ferrugo::md;
     const auto shape = array.shape();
     std::cout << shape << "\n";
     std::cout << " extents " << extents(shape) << "\n";
@@ -30,7 +30,7 @@ void print(ferrugo::md_v3::array_ref<int, 1> array)
 namespace ferrugo
 {
 
-namespace md_v3
+namespace md
 {
 
 void apply_histogram(
@@ -73,13 +73,13 @@ std::ostream& operator<<(std::ostream& os, const array_ref<const byte, 1> slice)
     return os;
 }
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo
 
 void run()
 {
     using namespace std::string_literals;
-    namespace md = ferrugo::md_v3;
+    namespace md = ferrugo::md;
 
     const auto directory = "/mnt/d/Users/Krzysiek/Pictures/"s;
 

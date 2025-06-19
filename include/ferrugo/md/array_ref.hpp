@@ -1,15 +1,15 @@
 #pragma once
 
-#include <ferrugo/md_v3/access.hpp>
-#include <ferrugo/md_v3/element_iterator.hpp>
-#include <ferrugo/md_v3/location_iterator.hpp>
-#include <ferrugo/md_v3/types.hpp>
+#include <ferrugo/md/access.hpp>
+#include <ferrugo/md/element_iterator.hpp>
+#include <ferrugo/md/location_iterator.hpp>
+#include <ferrugo/md/types.hpp>
 #include <functional>
 #include <sstream>
 
 namespace ferrugo
 {
-namespace md_v3
+namespace md
 {
 
 template <class T, std::size_t D>
@@ -165,5 +165,5 @@ struct make_array_ref_fn
 
 static constexpr inline auto make_array_ref = make_array_ref_fn{};
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo

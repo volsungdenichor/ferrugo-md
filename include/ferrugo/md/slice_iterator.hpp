@@ -2,8 +2,8 @@
 
 namespace ferrugo
 {
-namespace md_v3
+namespace md
 {
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo

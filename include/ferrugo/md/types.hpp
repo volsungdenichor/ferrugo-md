@@ -9,7 +9,7 @@
 
 namespace ferrugo
 {
-namespace md_v3
+namespace md
 {
 
 template <class... Args>
@@ -257,5 +257,5 @@ inline auto at(location_base_t loc) -> slice_base_t
                : slice_base_t{ loc, loc + 1, _ };
 }
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo

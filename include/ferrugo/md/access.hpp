@@ -1,11 +1,11 @@
 #pragma once
 
-#include <ferrugo/md_v3/types.hpp>
+#include <ferrugo/md/types.hpp>
 #include <functional>
 
 namespace ferrugo
 {
-namespace md_v3
+namespace md
 {
 
 namespace detail
@@ -302,5 +302,5 @@ static constexpr inline auto volume = detail::volume_fn{};
 static constexpr inline auto offset = detail::offset_fn{};
 static constexpr inline auto apply_slice = detail::apply_slice_fn{};
 
-}  // namespace md_v3
+}  // namespace md
 }  // namespace ferrugo
