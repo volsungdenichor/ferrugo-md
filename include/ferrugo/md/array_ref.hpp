@@ -74,17 +74,7 @@ public:
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
     auto sub_1d(std::size_t dim, const location_t<D - 1>& loc) const -> array_ref<T, 1>
     {
-        const auto new_loc = std::invoke(
-            [&]() -> location_type
-            {
-                location_type res = {};
-                auto iter = std::copy(loc.begin(), loc.begin() + dim, res.begin());
-                *iter++ = 0;
-                std::copy(loc.begin() + dim, loc.end(), iter);
-                return res;
-            });
-
-        return array_ref<T, 1>{ get(new_loc), dim_t<1>{ m_shape[dim] } };
+        return array_ref<T, 1>{ get(loc.insert(dim, 0)), dim_t<1>{ m_shape[dim] } };
     }
 
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
@@ -99,7 +89,6 @@ public:
             [&]() -> location_type
             {
                 location_type res = {};
-                std::fill(std::begin(res), std::end(res), 0);
                 res[dim] = actual_n;
                 return res;
             });

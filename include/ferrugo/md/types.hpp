@@ -69,6 +69,16 @@ struct tuple_t : public std::array<T, D>
         return result;
     }
 
+    auto insert(std::size_t pos, T item) const -> tuple_t<T, D + 1>
+    {
+        tuple_t<T, D + 1> result;
+        auto iter = std::copy(this->begin(), this->begin() + pos, result.begin());
+        *iter++ = std::move(item);
+        std::copy(this->begin() + pos, this->end(), iter);
+        return result;
+    }
+
+
     auto append(T item) const -> tuple_t<T, D + 1>
     {
         tuple_t<T, D + 1> result;
