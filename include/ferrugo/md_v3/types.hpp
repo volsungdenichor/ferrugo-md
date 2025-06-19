@@ -5,11 +5,20 @@
 #include <cstdint>
 #include <iostream>
 #include <optional>
+#include <sstream>
 
 namespace ferrugo
 {
 namespace md_v3
 {
+
+template <class... Args>
+auto str(Args&&... args) -> std::string
+{
+    std::stringstream ss;
+    (ss << ... << std::forward<Args>(args));
+    return ss.str();
+}
 
 using byte = std::uint8_t;
 
@@ -57,6 +66,14 @@ struct tuple_t : public std::array<T, D>
         {
             result[d - 1] = (*this)[d];
         }
+        return result;
+    }
+
+    auto append(T item) const -> tuple_t<T, D + 1>
+    {
+        tuple_t<T, D + 1> result;
+        std::copy(this->begin(), this->end(), result.begin());
+        result[D] = std::move(item);
         return result;
     }
 

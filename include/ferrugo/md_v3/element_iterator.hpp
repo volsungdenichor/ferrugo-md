@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ferrugo/md_v3/shape_iterator.hpp>
+#include <ferrugo/md_v3/location_iterator.hpp>
 
 namespace ferrugo
 {
@@ -11,15 +11,15 @@ namespace detail
 {
 
 template <class T, std::size_t D>
-struct ref_iter
+struct element_iter
 {
     byte* m_ptr;
     dim_t<D> m_shape;
     location_t<D> m_loc;
 
-    ref_iter() = default;
+    element_iter() = default;
 
-    ref_iter(byte* ptr, dim_t<D> shape, location_t<D> loc)
+    element_iter(byte* ptr, dim_t<D> shape, location_t<D> loc)
         : m_ptr{ ptr }
         , m_shape{ std::move(shape) }
         , m_loc{ std::move(loc) }
@@ -32,7 +32,7 @@ struct ref_iter
         return *(T*)ptr;
     }
 
-    auto is_equal(const ref_iter& other) const -> bool
+    auto is_equal(const element_iter& other) const -> bool
     {
         return m_loc == other.m_loc;
     }
@@ -45,19 +45,16 @@ struct ref_iter
     void inc(std::size_t d)
     {
         ++m_loc[d];
-        if (m_loc[d] == m_shape[d].size)
+        if (m_loc[d] == m_shape[d].size && (d + 1 < D))
         {
-            if (d + 1 < D)
-            {
-                m_loc[d] = 0;
-                inc(d + 1);
-            }
+            m_loc[d] = 0;
+            inc(d + 1);
         }
     }
 };
 
 template <class T, std::size_t D>
-using ref_iterator = core::iterator_interface<ref_iter<T, D>>;
+using element_iterator = core::iterator_interface<element_iter<T, D>>;
 
 }  // namespace detail
 

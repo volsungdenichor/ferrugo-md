@@ -5,7 +5,6 @@
 #include <ferrugo/md_v3/bitmap.hpp>
 #include <ferrugo/md_v3/histogram.hpp>
 #include <ferrugo/md_v3/lut.hpp>
-#include <ferrugo/md_v3/shape_iterator.hpp>
 #include <ferrugo/md_v3/transformations.hpp>
 #include <iostream>
 #include <memory>
@@ -21,7 +20,7 @@ void print(ferrugo::md_v3::array_ref<int, 1> array)
     std::cout << " bounds " << bounds(shape) << "\n";
     std::cout << " size " << size(shape) << "\n";
     std::cout << " volume " << volume(shape) << "\n";
-    for (auto loc : iter(shape))
+    for (auto loc : locations(shape))
     {
         std::cout << "  loc=" << loc << " offset=" << offset(shape, loc) << " value=" << array[loc] << "\n";
     }
@@ -59,6 +58,21 @@ void apply_histogram(
     apply_histogram(image, image.as_const(), func);
 }
 
+std::ostream& operator<<(std::ostream& os, const array_ref<const byte, 1> slice)
+{
+    os << "[";
+    for (std::size_t n = 0; n < slice.shape()[0].size; ++n)
+    {
+        if (n != 0)
+        {
+            os << " ";
+        }
+        os << static_cast<int>(slice[n]);
+    }
+    os << "]";
+    return os;
+}
+
 }  // namespace md_v3
 }  // namespace ferrugo
 
@@ -78,9 +92,26 @@ void run()
     std::cout << " size " << md::size(img.shape()) << "\n";
     std::cout << " volume " << md::volume(img.shape()) << "\n";
 
-    apply_histogram(copy, md::equalize);
+    // apply_histogram(copy, md::equalize);
 
     md::save_bitmap(copy, directory + "hippie_out.bmp");
+
+    const auto region = img.ref().slice(md::slice_t<3>{ //
+                                                        md::slice_t<>{ md::_, 2, md::_ },
+                                                        md::slice_t<>{ md::_, 4, md::_ },
+                                                        md::slice_t<>{} });
+
+    for (auto loc : md::locations(region.sub(2, 0).shape()))
+    {
+        std::cout << loc << " " << img.ref().sub_1d(2, loc) << "\n";
+    }
+
+    std::vector<float> v = { 1, 2, 3.14, 9.99, 49, 99.9 };
+    md::array_ref<float, 1> ref = md::make_array_ref(v);
+    for (auto val : ref.slice({ md::_, md::_, -1 }))
+    {
+        std::cout << val << "\n";
+    }
 }
 
 int main()

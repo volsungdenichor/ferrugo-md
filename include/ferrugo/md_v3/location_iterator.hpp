@@ -14,14 +14,14 @@ namespace detail
 {
 
 template <std::size_t D>
-struct shape_iter
+struct location_iter
 {
     dim_t<D> m_shape;
     location_t<D> m_loc;
 
-    shape_iter() = default;
+    location_iter() = default;
 
-    shape_iter(dim_t<D> shape, location_t<D> loc) : m_shape{ std::move(shape) }, m_loc{ std::move(loc) }
+    location_iter(dim_t<D> shape, location_t<D> loc) : m_shape{ std::move(shape) }, m_loc{ std::move(loc) }
     {
     }
 
@@ -30,7 +30,7 @@ struct shape_iter
         return m_loc;
     }
 
-    auto is_equal(const shape_iter& other) const -> bool
+    auto is_equal(const location_iter& other) const -> bool
     {
         return m_loc == other.m_loc;
     }
@@ -55,18 +55,18 @@ struct shape_iter
 };
 
 template <std::size_t D>
-using shape_iterator = core::iterator_interface<shape_iter<D>>;
+using location_iterator = core::iterator_interface<location_iter<D>>;
 
-struct iterate_shape_fn
+struct iterate_locations_fn
 {
     template <std::size_t D>
-    auto operator()(const dim_t<D>& item) const -> core::subrange<shape_iterator<D>>
+    auto operator()(const dim_t<D>& item) const -> core::subrange<location_iterator<D>>
     {
-        const auto begin = shape_iterator<D>{ item, location_t<D>{} };
+        const auto begin = location_iterator<D>{ item, location_t<D>{} };
 
         location_t<D> last{};
         last[D - 1] = item[D - 1].size;
-        const auto end = shape_iterator<D>{ item, last };
+        const auto end = location_iterator<D>{ item, last };
 
         return { begin, end };
     }
@@ -74,8 +74,8 @@ struct iterate_shape_fn
 
 }  // namespace detail
 
-using detail::shape_iterator;
-static constexpr inline auto iter = detail::iterate_shape_fn{};
+using detail::location_iterator;
+static constexpr inline auto locations = detail::iterate_locations_fn{};
 
 }  // namespace md_v3
 }  // namespace ferrugo
