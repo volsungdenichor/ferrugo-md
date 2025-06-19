@@ -250,7 +250,7 @@ struct load_bitmap_fn
         {
             case 8: return load_bitmap_8(is, dib_hdr);
             case 24: return load_bitmap_24(is, dib_hdr);
-            default: throw std::runtime_error{ "load_bitmap: format not supported" };
+            default: throw std::runtime_error{ str("load_bitmap: format not supported") };
         }
     }
 
@@ -259,7 +259,7 @@ struct load_bitmap_fn
         std::ifstream fs(path.c_str(), std::ifstream::binary);
         if (!fs)
         {
-            throw std::runtime_error{ "load_bitmap: can not load file '" + path + "'" };
+            throw std::runtime_error{ str("load_bitmap: can not load file '", path, "'") };
         }
         return (*this)(fs);
     }

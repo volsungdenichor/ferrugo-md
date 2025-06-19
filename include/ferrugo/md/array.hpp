@@ -66,6 +66,11 @@ public:
         return ref_type{ m_data.data(), shape() };
     }
 
+    operator ref_type() const
+    {
+        return ref();
+    }
+
 private:
     shape_type m_shape;
     data_type m_data;

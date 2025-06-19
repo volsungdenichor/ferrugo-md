@@ -58,16 +58,20 @@ void apply_histogram(
     apply_histogram(image, image.as_const(), func);
 }
 
-std::ostream& operator<<(std::ostream& os, const array_ref<const byte, 1> slice)
+template <std::size_t N>
+std::ostream& operator<<(std::ostream& os, const array_ref<const byte, N> item)
 {
     os << "[";
-    for (std::size_t n = 0; n < slice.shape()[0].size; ++n)
+    auto it = item.begin();
+    const auto e = item.end();
+    if (it != e)
     {
-        if (n != 0)
-        {
-            os << " ";
-        }
-        os << static_cast<int>(slice[n]);
+        os << static_cast<int>(*it++);
+    }
+    for (; it != e; ++it)
+    {
+        os << " ";
+        os << static_cast<int>(*it);
     }
     os << "]";
     return os;
@@ -83,18 +87,13 @@ void run()
 
     const auto directory = "/mnt/d/Users/Krzysiek/Pictures/"s;
 
-    auto img = md::load_bitmap(directory + "hippie.bmp");
-    auto copy = img.mut_ref();
+    const auto img = md::load_bitmap(directory + "hippie.bmp");
 
     std::cout << " shape " << img.shape() << "\n";
     std::cout << " extents " << md::extents(img.shape()) << "\n";
     std::cout << " bounds " << md::bounds(img.shape()) << "\n";
     std::cout << " size " << md::size(img.shape()) << "\n";
     std::cout << " volume " << md::volume(img.shape()) << "\n";
-
-    // apply_histogram(copy, md::equalize);
-
-    md::save_bitmap(copy, directory + "hippie_out.bmp");
 
     std::cout << img.ref()[md::location_t<2>{ 0, 0 }] << "\n";
 
@@ -108,15 +107,7 @@ void run()
         std::cout << loc << " " << img.ref().sub_1d(2, loc) << "\n";
     }
 
-    float v[] = { 1, 2, 3.14, 9.99, 49, 99.9 };
-    md::array_ref<float, 1> ref = md::make_array_ref(v);
-    for (auto val : ref.slice({ md::_, md::_, -2 }))
-    {
-        std::cout << val << "\n";
-    }
-    ref.slice({ md::_, md::_, -2 }) = -1;
-    std::copy(std::begin(v), std::end(v), std::ostream_iterator<float>(std::cout, ", "));
-    std::cout << "\n";
+    std::cout << img.ref().slice(md::slice_t<3>{ { {}, 2, {} }, md::at(0), md::_ }) << "\n";
 }
 
 int main()
