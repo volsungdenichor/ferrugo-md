@@ -108,14 +108,14 @@ void run()
         std::cout << loc << " " << img.ref().sub_1d(2, loc) << "\n";
     }
 
-    std::vector<float> v = { 1, 2, 3.14, 9.99, 49, 99.9 };
+    float v[] = { 1, 2, 3.14, 9.99, 49, 99.9 };
     md::array_ref<float, 1> ref = md::make_array_ref(v);
-    for (auto val : ref.slice({ md::_, md::_, -3 }))
+    for (auto val : ref.slice({ md::_, md::_, -2 }))
     {
         std::cout << val << "\n";
     }
-    ref.slice({ md::_, md::_, -3 }) = -1;
-    std::copy(v.begin(), v.end(), std::ostream_iterator<float>(std::cout, ", "));
+    ref.slice({ md::_, md::_, -2 }) = -1;
+    std::copy(std::begin(v), std::end(v), std::ostream_iterator<float>(std::cout, ", "));
     std::cout << "\n";
 }
 

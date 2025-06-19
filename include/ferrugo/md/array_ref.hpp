@@ -30,7 +30,7 @@ public:
 
     auto as_const() const -> array_ref<std::add_const_t<T>, D>
     {
-        return { get(), m_shape };
+        return { get(), shape() };
     }
 
     operator array_ref<std::add_const_t<T>, D>() const
@@ -45,14 +45,14 @@ public:
 
     auto begin() const -> iterator
     {
-        return iterator{ m_ptr, m_shape, location_t<D>{} };
+        return iterator{ m_ptr, shape(), location_t<D>{} };
     }
 
     auto end() const -> iterator
     {
         location_t<D> last = {};
         last[D - 1] = m_shape[D - 1].size;
-        return iterator{ m_ptr, m_shape, last };
+        return iterator{ m_ptr, shape(), last };
     }
 
     auto get() const -> pointer
@@ -62,7 +62,7 @@ public:
 
     auto get(const location_type& loc) const -> pointer
     {
-        byte* ptr = (m_ptr + offset(m_shape, loc));
+        byte* ptr = (m_ptr + offset(shape(), loc));
         return (pointer)ptr;
     }
 
@@ -98,7 +98,7 @@ public:
 
     auto slice(const slice_type& slices) const -> array_ref
     {
-        return array_ref{ get(), apply_slice(m_shape, slices) };
+        return array_ref{ get(), apply_slice(shape(), slices) };
     }
 
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
@@ -139,6 +139,12 @@ struct make_array_ref_fn
         return dim_t<1>{ { static_cast<std::ptrdiff_t>(v.size()), sizeof(T) } };
     }
 
+    template <class T, std::size_t N>
+    static auto make_dim(const std::array<T, N>& v) -> dim_t<1>
+    {
+        return dim_t<1>{ { static_cast<std::ptrdiff_t>(v.size()), sizeof(T) } };
+    }
+
     template <class T>
     auto operator()(const std::vector<T>& v) const -> array_ref<const T, 1>
     {
@@ -149,6 +155,24 @@ struct make_array_ref_fn
     auto operator()(std::vector<T>& v) const -> array_ref<T, 1>
     {
         return array_ref<T, 1>{ v.data(), make_dim(v) };
+    }
+
+    template <class T, std::size_t N>
+    auto operator()(const std::array<T, N>& v) const -> array_ref<const T, 1>
+    {
+        return array_ref<const T, 1>{ v.data(), make_dim(v) };
+    }
+
+    template <class T, std::size_t N>
+    auto operator()(std::array<T, N>& v) const -> array_ref<T, 1>
+    {
+        return array_ref<T, 1>{ v.data(), make_dim(v) };
+    }
+
+    template <class T, std::size_t N>
+    auto operator()(T (&array)[N]) const -> array_ref<T, 1>
+    {
+        return array_ref<T, 1>{ array, dim_t<1>{ { static_cast<std::ptrdiff_t>(N), sizeof(T) } } };
     }
 };
 

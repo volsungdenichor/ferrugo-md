@@ -42,7 +42,7 @@ public:
 
     array(const size_t<D>& size) : m_shape{ create_shape(size) }, m_data{}
     {
-        m_data.reserve(volume(m_shape));
+        m_data.reserve(volume(shape()));
     }
 
     template <class U>
@@ -58,12 +58,12 @@ public:
 
     auto mut_ref() -> mut_ref_type
     {
-        return mut_ref_type{ m_data.data(), m_shape };
+        return mut_ref_type{ m_data.data(), shape() };
     }
 
     auto ref() const -> ref_type
     {
-        return ref_type{ m_data.data(), m_shape };
+        return ref_type{ m_data.data(), shape() };
     }
 
 private:
