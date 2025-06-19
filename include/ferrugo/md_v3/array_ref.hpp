@@ -113,6 +113,12 @@ public:
     }
 
     template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
+    auto operator[](const location_t<D - 1>& loc) const -> array_ref<T, 1>
+    {
+        return sub_1d(D_ - 1, loc);
+    }
+
+    template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
     auto operator[](location_base_t n) const -> array_ref<T, D_ - 1>
     {
         return sub(0, n);

@@ -96,6 +96,8 @@ void run()
 
     md::save_bitmap(copy, directory + "hippie_out.bmp");
 
+    std::cout << img.ref()[md::location_t<2>{ 0, 0 }] << "\n";
+
     const auto region = img.ref().slice(md::slice_t<3>{ //
                                                         md::slice_t<>{ md::_, 2, md::_ },
                                                         md::slice_t<>{ md::_, 4, md::_ },
@@ -108,10 +110,13 @@ void run()
 
     std::vector<float> v = { 1, 2, 3.14, 9.99, 49, 99.9 };
     md::array_ref<float, 1> ref = md::make_array_ref(v);
-    for (auto val : ref.slice({ md::_, md::_, -1 }))
+    for (auto val : ref.slice({ md::_, md::_, -3 }))
     {
         std::cout << val << "\n";
     }
+    ref.slice({ md::_, md::_, -3 }) = -1;
+    std::copy(v.begin(), v.end(), std::ostream_iterator<float>(std::cout, ", "));
+    std::cout << "\n";
 }
 
 int main()
