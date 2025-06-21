@@ -12,6 +12,54 @@ namespace ferrugo
 namespace md
 {
 
+namespace detail
+{
+inline auto apply_slice(const dim_base_t& dim, const slice_base_t& slice) -> std::tuple<dim_base_t, location_base_t>
+{
+    const auto step = slice.step.value_or(1);
+
+    if (step == 0)
+    {
+        throw std::runtime_error{ "step cannot be zero" };
+    }
+    static const auto ensure_non_negative = [](location_base_t v) { return std::max(location_base_t(0), v); };
+    const auto apply_size = [&](location_base_t v) { return v < 0 ? v + dim.size : v; };
+    const auto clamp = [&](location_base_t v, location_base_t shift)
+    { return std::max(location_base_t(shift), std::min(v, dim.size + shift)); };
+
+    const auto [size, start]  //
+        = step > 0            //
+              ? std::invoke(
+                  [&]() -> std::tuple<size_base_t, location_base_t>
+                  {
+                      const auto start = clamp(apply_size(slice.start.value_or(0)), 0);
+                      const auto stop = clamp(apply_size(slice.stop.value_or(dim.size)), 0);
+                      const auto size = ensure_non_negative(((stop - start) + step - 1) / step);
+                      return std::tuple{ size, start };
+                  })
+              : std::invoke(
+                  [&]() -> std::tuple<location_base_t, location_base_t>
+                  {
+                      const auto start = clamp(apply_size(slice.start.value_or(dim.size)), -1);
+                      const auto stop = clamp(apply_size(slice.stop.value_or(0)), -1);
+                      const auto size = ensure_non_negative(((stop - start) + step) / step);
+                      return std::tuple{ size, start };
+                  });
+    return { dim_base_t{ std::min(size, dim.size), dim.stride * step }, start };
+}
+
+template <std::size_t D>
+inline auto apply_slice(const dim_t<D>& dim, const slice_t<D>& slice) -> std::tuple<dim_t<D>, location_t<D>>
+{
+    std::tuple<dim_t<D>, location_t<D>> result;
+    for (std::size_t d = 0; d < D; ++d)
+    {
+        std::tie(std::get<0>(result)[d], std::get<1>(result)[d]) = apply_slice(dim[d], slice[d]);
+    }
+    return result;
+}
+}  // namespace detail
+
 template <class T, std::size_t D>
 class array_ref
 {
@@ -62,7 +110,7 @@ public:
 
     auto get(const location_type& loc) const -> pointer
     {
-        byte* ptr = (m_ptr + offset(shape(), loc));
+        byte* ptr = (m_ptr + flat_offset(shape(), loc));
         return (pointer)ptr;
     }
 
@@ -71,52 +119,10 @@ public:
         return *get(loc);
     }
 
-    template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
-    auto sub_1d(std::size_t dim, const location_t<D - 1>& loc) const -> array_ref<T, 1>
-    {
-        return array_ref<T, 1>{ get(loc.insert(dim, 0)), dim_t<1>{ m_shape[dim] } };
-    }
-
-    template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
-    auto sub(std::size_t dim, location_base_t n) const -> array_ref<T, D - 1>
-    {
-        const location_base_t actual_n = n >= 0 ? n : m_shape[dim].size + n;
-        if (!(0 <= actual_n && actual_n < m_shape[dim].size))
-        {
-            throw std::out_of_range{ str("out of range: ", "n=", actual_n, " size=", m_shape[dim].size) };
-        }
-        const auto new_loc = std::invoke(
-            [&]() -> location_type
-            {
-                location_type res = {};
-                res[dim] = actual_n;
-                return res;
-            });
-
-        return array_ref<T, D - 1>{ get(new_loc), m_shape.erase(dim) };
-    }
-
     auto slice(const slice_type& slices) const -> array_ref
     {
-        return array_ref{ get(), apply_slice(shape(), slices) };
-    }
-
-    template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
-    auto operator[](const location_t<D - 1>& loc) const -> array_ref<T, 1>
-    {
-        return sub_1d(D_ - 1, loc);
-    }
-
-    template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
-    auto operator[](location_base_t n) const -> array_ref<T, D_ - 1>
-    {
-        return sub(0, n);
-    }
-
-    template <std::size_t D_ = D, std::enable_if_t<(D_ == 1), int> = 0>
-    auto operator[](location_base_t n) const -> reference
-    {
-        return (*this)[location_t<1>{ n }];
+        const auto [new_shape, new_loc] = detail::apply_slice(shape(), slices);
+        return array_ref{ get(new_loc), new_shape };
     }
 
     template <class T_ = T, std::enable_if_t<!std::is_const_v<T_>, int> = 0>

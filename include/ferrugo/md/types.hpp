@@ -78,7 +78,6 @@ struct tuple_t : public std::array<T, D>
         return result;
     }
 
-
     auto append(T item) const -> tuple_t<T, D + 1>
     {
         tuple_t<T, D + 1> result;
@@ -171,17 +170,16 @@ struct dim_base_t
 {
     location_base_t size;
     location_base_t stride;
-    location_base_t min;
 
     dim_base_t() = default;
 
-    dim_base_t(location_base_t size, location_base_t stride, location_base_t min = 0) : size(size), stride(stride), min(min)
+    dim_base_t(location_base_t size, location_base_t stride) : size(size), stride(stride)
     {
     }
 
     friend bool operator==(const dim_base_t& lhs, const dim_base_t& rhs)
     {
-        return std::tie(lhs.size, lhs.stride, lhs.min) == std::tie(rhs.size, rhs.stride, rhs.min);
+        return std::tie(lhs.size, lhs.stride) == std::tie(rhs.size, rhs.stride);
     }
 
     friend bool operator!=(const dim_base_t& lhs, const dim_base_t& rhs)
@@ -193,8 +191,7 @@ struct dim_base_t
     {
         return os << "{"
                   << ":size " << item.size << " "
-                  << ":stride " << item.stride << " "
-                  << ":min " << item.min << "}";
+                  << ":stride " << item.stride << "}";
     }
 };
 

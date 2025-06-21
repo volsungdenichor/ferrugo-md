@@ -16,7 +16,6 @@ auto create_shape(const size_t<D>& size) -> dim_t<D>
     {
         result[d].size = size[d];
         result[d].stride = stride;
-        result[d].min = 0;
         stride *= size[d];
     }
     return result;

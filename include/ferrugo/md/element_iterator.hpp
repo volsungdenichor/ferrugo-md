@@ -28,7 +28,7 @@ struct element_iter
 
     auto deref() const -> T&
     {
-        byte* ptr = (m_ptr + offset(m_shape, m_loc));
+        byte* ptr = (m_ptr + flat_offset(m_shape, m_loc));
         return *(T*)ptr;
     }
 

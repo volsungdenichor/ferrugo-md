@@ -11,22 +11,6 @@
 #include <numeric>
 #include <vector>
 
-void print(ferrugo::md::array_ref<int, 1> array)
-{
-    using namespace ferrugo::md;
-    const auto shape = array.shape();
-    std::cout << shape << "\n";
-    std::cout << " extents " << extents(shape) << "\n";
-    std::cout << " bounds " << bounds(shape) << "\n";
-    std::cout << " size " << size(shape) << "\n";
-    std::cout << " volume " << volume(shape) << "\n";
-    for (auto loc : locations(shape))
-    {
-        std::cout << "  loc=" << loc << " offset=" << offset(shape, loc) << " value=" << array[loc] << "\n";
-    }
-    std::cout << "\n";
-}
-
 namespace ferrugo
 {
 
@@ -80,7 +64,7 @@ std::ostream& operator<<(std::ostream& os, const array_ref<const byte, N> item)
 }  // namespace md
 }  // namespace ferrugo
 
-void run()
+int run(const std::vector<std::string>& args)
 {
     using namespace std::string_literals;
     namespace md = ferrugo::md;
@@ -95,26 +79,23 @@ void run()
     std::cout << " size " << md::size(img.shape()) << "\n";
     std::cout << " volume " << md::volume(img.shape()) << "\n";
 
-    std::cout << img.ref()[md::location_t<2>{ 0, 0 }] << "\n";
-
     const auto region = img.ref().slice(md::slice_t<3>{ //
-                                                        md::slice_t<>{ md::_, 2, md::_ },
-                                                        md::slice_t<>{ md::_, 4, md::_ },
-                                                        md::slice_t<>{} });
+                                                        md::slice_t<>{ 3, 4, md::_ },
+                                                        md::slice_t<>{ 3, 4, md::_ },
+                                                        md::slice_t<>{ md::_, md::_, md::_ } });
 
-    for (auto loc : md::locations(region.sub(2, 0).shape()))
-    {
-        std::cout << loc << " " << img.ref().sub_1d(2, loc) << "\n";
-    }
+    std::cout << region.shape() << "\n";
+    std::cout << md::size(region.shape()) << "\n";
+    std::cout << region << "\n";
 
-    std::cout << img.ref().slice(md::slice_t<3>{ { {}, 2, {} }, md::at(0), md::_ }) << "\n";
+    return 0;
 }
 
-int main()
+int main(int argc, char** argv)
 {
     try
     {
-        run();
+        return run(std::vector<std::string>(argv, argv + argc));
     }
     catch (const std::exception& ex)
     {
