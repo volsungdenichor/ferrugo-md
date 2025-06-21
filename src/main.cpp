@@ -64,7 +64,7 @@ std::ostream& operator<<(std::ostream& os, const array_ref<const byte, N> item)
 }  // namespace md
 }  // namespace ferrugo
 
-int run(const std::vector<std::string>& args)
+int run(const std::vector<std::string_view>& args)
 {
     using namespace std::string_literals;
     namespace md = ferrugo::md;
@@ -80,9 +80,9 @@ int run(const std::vector<std::string>& args)
     std::cout << " volume " << md::volume(img.shape()) << "\n";
 
     const auto region = img.ref().slice(md::slice_t<3>{ //
-                                                        md::slice_t<>{ 3, 4, md::_ },
-                                                        md::slice_t<>{ 3, 4, md::_ },
-                                                        md::slice_t<>{ md::_, md::_, md::_ } });
+                                                        0,
+                                                        -1,
+                                                        md::slice_t<>{} });
 
     std::cout << region.shape() << "\n";
     std::cout << md::size(region.shape()) << "\n";
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 {
     try
     {
-        return run(std::vector<std::string>(argv, argv + argc));
+        return run(std::vector<std::string_view>(argv, argv + argc));
     }
     catch (const std::exception& ex)
     {

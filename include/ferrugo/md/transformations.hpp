@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ferrugo/md/array_ref.hpp>
+#include <ferrugo/md/array.hpp>
 
 namespace ferrugo
 {

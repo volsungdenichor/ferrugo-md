@@ -203,7 +203,13 @@ struct slice_base_t
     value_type stop;
     value_type step;
 
-    slice_base_t(value_type start = {}, value_type stop = {}, value_type step = {}) : start(start), stop(stop), step(step)
+    slice_base_t() = default;
+
+    slice_base_t(value_type start, value_type stop, value_type step = {}) : start(start), stop(stop), step(step)
+    {
+    }
+
+    slice_base_t(location_base_t index) : slice_base_t(index, index != -1 ? value_type{ index + 1 } : value_type{})
     {
     }
 
