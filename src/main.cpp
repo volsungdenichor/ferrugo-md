@@ -24,7 +24,7 @@ void apply_histogram(
 {
     for (int c = 0; c < 3; ++c)
     {
-        const auto channel = slice_t<3>{ slice_t<>{}, slice_t<>{}, at(c) };
+        const auto channel = slice_t<3>{ slice_base_t{}, slice_base_t{}, c };
         const auto source_channel = source.slice(channel);
         const auto dest_channel = dest.slice(channel);
 
@@ -42,20 +42,40 @@ void apply_histogram(
     apply_histogram(image, image.as_const(), func);
 }
 
-template <std::size_t N>
-std::ostream& operator<<(std::ostream& os, const array_ref<const byte, N> item)
+template <class T>
+struct format
 {
+    template <class U>
+    void operator()(std::ostream& os, U&& item) const
+    {
+        os << std::forward<U>(item);
+    }
+};
+
+template <>
+struct format<md::byte>
+{
+    void operator()(std::ostream& os, md::byte item) const
+    {
+        os << static_cast<int>(item);
+    }
+};
+
+template <class T, std::size_t N>
+std::ostream& operator<<(std::ostream& os, const array_ref<T, N> item)
+{
+    static const auto fmt = format<std::remove_const_t<T>>{};
     os << "[";
     auto it = item.begin();
     const auto e = item.end();
     if (it != e)
     {
-        os << static_cast<int>(*it++);
+        fmt(os, *it++);
     }
     for (; it != e; ++it)
     {
         os << " ";
-        os << static_cast<int>(*it);
+        fmt(os, *it);
     }
     os << "]";
     return os;
@@ -71,7 +91,7 @@ int run(const std::vector<std::string_view>& args)
 
     const auto directory = "/mnt/d/Users/Krzysiek/Pictures/"s;
 
-    const auto img = md::load_bitmap(directory + "hippie.bmp");
+    auto img = md::load_bitmap(directory + "conan.bmp");
 
     std::cout << " shape " << img.shape() << "\n";
     std::cout << " extents " << md::extents(img.shape()) << "\n";
@@ -79,14 +99,26 @@ int run(const std::vector<std::string_view>& args)
     std::cout << " size " << md::size(img.shape()) << "\n";
     std::cout << " volume " << md::volume(img.shape()) << "\n";
 
-    const auto region = img.ref().slice(md::slice_t<3>{ //
-                                                        0,
-                                                        -1,
-                                                        md::slice_t<>{} });
+    auto region = img.mut_ref().slice({ //
+                                        md::slice_base_t{ 105, md::_, 3 },
+                                        md::slice_base_t{ 100, md::_, 2 },
+                                        md::slice_base_t{ 0, 1 } });
 
-    std::cout << region.shape() << "\n";
-    std::cout << md::size(region.shape()) << "\n";
-    std::cout << region << "\n";
+    region = 25;
+
+    img.mut_ref().slice({ 0, md::slice_base_t{}, 0 }) = 255;
+    img.mut_ref().slice({ 0, md::slice_base_t{}, 1 }) = 0;
+    img.mut_ref().slice({ 0, md::slice_base_t{}, 2 }) = 10;
+
+    img.mut_ref().slice({ -1, md::slice_base_t{}, 0 }) = 255;
+    img.mut_ref().slice({ -1, md::slice_base_t{}, 1 }) = 0;
+    img.mut_ref().slice({ -1, md::slice_base_t{}, 2 }) = 10;
+
+    img.mut_ref().slice({ md::slice_base_t{}, 0, 0 }) = 255;
+    img.mut_ref().slice({ md::slice_base_t{}, 0, 1 }) = 0;
+    img.mut_ref().slice({ md::slice_base_t{}, 0, 2 }) = 0;
+
+    md::save_bitmap(img.ref(), directory + "conan_out.bmp");
 
     return 0;
 }

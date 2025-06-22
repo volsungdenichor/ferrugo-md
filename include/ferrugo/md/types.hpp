@@ -33,15 +33,6 @@ struct tuple_t : public std::array<T, D>
         std::fill(base_t::begin(), base_t::end(), value_type{});
     }
 
-    template <
-        std::size_t D_ = D,
-        class... Args,
-        std::enable_if_t<D_ == 1 && std::is_constructible_v<value_type, Args...>, int> = 0>
-    tuple_t(Args&&... args) : base_t{}
-    {
-        (*this)[0] = value_type(std::forward<Args>(args)...);
-    }
-
     template <std::size_t D_ = D, std::enable_if_t<D_ == 1, int> = 0>
     operator value_type() const
     {
@@ -69,6 +60,18 @@ struct tuple_t : public std::array<T, D>
         return result;
     }
 
+    template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
+    auto pop_front() const -> tuple_t<T, D - 1>
+    {
+        return erase(0);
+    }
+
+    template <std::size_t D_ = D, std::enable_if_t<(D_ > 1), int> = 0>
+    auto pop_back() const -> tuple_t<T, D - 1>
+    {
+        return erase(D - 1);
+    }
+
     auto insert(std::size_t pos, T item) const -> tuple_t<T, D + 1>
     {
         tuple_t<T, D + 1> result;
@@ -78,12 +81,14 @@ struct tuple_t : public std::array<T, D>
         return result;
     }
 
-    auto append(T item) const -> tuple_t<T, D + 1>
+    auto push_back(T item) const -> tuple_t<T, D + 1>
     {
-        tuple_t<T, D + 1> result;
-        std::copy(this->begin(), this->end(), result.begin());
-        result[D] = std::move(item);
-        return result;
+        return insert(D - 1, std::move(item));
+    }
+
+    auto push_front(T item) const -> tuple_t<T, D + 1>
+    {
+        return insert(0, std::move(item));
     }
 
     friend std::ostream& operator<<(std::ostream& os, const tuple_t& item)
@@ -243,22 +248,22 @@ struct slice_base_t
     }
 };
 
-template <std::size_t D = 1>
+template <std::size_t D>
 using location_t = tuple_t<location_base_t, D>;
 
-template <std::size_t D = 1>
+template <std::size_t D>
 using size_t = tuple_t<size_base_t, D>;
 
-template <std::size_t D = 1>
+template <std::size_t D>
 using extents_t = tuple_t<extents_base_t, D>;
 
-template <std::size_t D = 1>
+template <std::size_t D>
 using bounds_t = tuple_t<bounds_base_t, D>;
 
-template <std::size_t D = 1>
+template <std::size_t D>
 using dim_t = tuple_t<dim_base_t, D>;
 
-template <std::size_t D = 1>
+template <std::size_t D>
 using slice_t = tuple_t<slice_base_t, D>;
 
 static constexpr inline auto _ = slice_base_t::value_type{};

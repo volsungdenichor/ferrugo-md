@@ -141,6 +141,18 @@ public:
         return *this;
     }
 
+    template <class T_ = T, class Range, std::enable_if_t<!std::is_const_v<T_>, int> = 0>
+    void assign(Range&& range)
+    {
+        std::copy(std::begin(range), std::end(range), begin());
+    }
+
+    template <class T_ = T, class U, std::enable_if_t<!std::is_const_v<T_>, int> = 0>
+    void assign(std::initializer_list<U> range)
+    {
+        std::copy(std::begin(range), std::end(range), begin());
+    }
+
 private:
     byte* m_ptr;
     shape_type m_shape;
