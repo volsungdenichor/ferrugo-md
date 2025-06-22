@@ -99,24 +99,13 @@ int run(const std::vector<std::string_view>& args)
     std::cout << " size " << md::size(img.shape()) << "\n";
     std::cout << " volume " << md::volume(img.shape()) << "\n";
 
-    auto region = img.mut_ref().slice({ //
-                                        md::slice_base_t{ 105, md::_, 3 },
-                                        md::slice_base_t{ 100, md::_, 2 },
-                                        md::slice_base_t{ 0, 1 } });
+    img.mut_ref().slice({ //
+                          md::slice_base_t{ 105, md::_, 3 },
+                          md::slice_base_t{ 100, md::_, 2 },
+                          md::slice_base_t{ 0, 1 } })
+        = 25;
 
-    region = 25;
-
-    img.mut_ref().slice({ 0, md::slice_base_t{}, 0 }) = 255;
-    img.mut_ref().slice({ 0, md::slice_base_t{}, 1 }) = 0;
-    img.mut_ref().slice({ 0, md::slice_base_t{}, 2 }) = 10;
-
-    img.mut_ref().slice({ -1, md::slice_base_t{}, 0 }) = 255;
-    img.mut_ref().slice({ -1, md::slice_base_t{}, 1 }) = 0;
-    img.mut_ref().slice({ -1, md::slice_base_t{}, 2 }) = 10;
-
-    img.mut_ref().slice({ md::slice_base_t{}, 0, 0 }) = 255;
-    img.mut_ref().slice({ md::slice_base_t{}, 0, 1 }) = 0;
-    img.mut_ref().slice({ md::slice_base_t{}, 0, 2 }) = 0;
+    img.mut_ref().slice(md::slice_t<3>{ md::slice_base_t{ 10, 15 }, md::slice_base_t{ 50, 60 }, md::slice_base_t{} }) = 0;
 
     md::save_bitmap(img.ref(), directory + "conan_out.bmp");
 
