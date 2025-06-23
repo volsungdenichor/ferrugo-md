@@ -93,18 +93,18 @@ int run(const std::vector<std::string_view>& args)
 
     auto img = md::load_bitmap(directory + "conan.bmp");
 
-    std::cout << " shape " << img.shape() << "\n";
-    std::cout << " extents " << md::extents(img.shape()) << "\n";
-    std::cout << " bounds " << md::bounds(img.shape()) << "\n";
-    std::cout << " size " << md::size(img.shape()) << "\n";
-    std::cout << " volume " << md::volume(img.shape()) << "\n";
+    std::cout << " shape " << md::shape(img) << "\n";
+    std::cout << " extents " << md::extents(md::shape(img)) << "\n";
+    std::cout << " bounds " << md::bounds(md::shape(img)) << "\n";
+    std::cout << " size " << md::size(md::shape(img)) << "\n";
+    std::cout << " volume " << md::volume(md::shape(img)) << "\n";
 
     auto reg = img.mut_ref().slice({ //
                                      md::slice_base_t{ 0, 10 },
                                      md::slice_base_t{ 0, 20 },
                                      md::slice_base_t{} });
 
-    for (auto loc : md::locations(md::subslice(2)(reg).shape()))
+    for (auto loc : md::locations(md::shape(md::subslice(2)(reg))))
     {
         std::cout << loc << " " << reg.slice({ loc[0], loc[1], md::slice_base_t{} }) << "\n";
     }

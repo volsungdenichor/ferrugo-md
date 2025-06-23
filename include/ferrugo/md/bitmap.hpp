@@ -187,8 +187,8 @@ inline auto load_bitmap_8(std::istream& is, const dib_header& header) -> array<b
         palette[i] = { r, g, b };
     }
 
-    const auto h = result.shape().at(0).size;
-    const auto w = result.shape().at(1).size;
+    const auto h = shape(ref).at(0).size;
+    const auto w = shape(ref).at(1).size;
 
     for (int y = h - 1; y >= 0; --y)
     {
@@ -214,8 +214,8 @@ inline auto load_bitmap_24(std::istream& is, const dib_header& header) -> array<
     array<byte, 3> result = prepare_array(header);
     auto ref = result.mut_ref();
 
-    const auto h = result.shape().at(0).size;
-    const auto w = result.shape().at(1).size;
+    const auto h = shape(ref).at(0).size;
+    const auto w = shape(ref).at(1).size;
 
     for (int y = h - 1; y >= 0; --y)
     {
@@ -270,10 +270,10 @@ struct save_bitmap_fn
     void operator()(array_ref<const byte, 2> image, std::ostream& os) const
     {
         static const std::size_t bits_per_pixel = 8;
-        const std::size_t padding = detail::get_padding(image.shape().at(1).size, bits_per_pixel);
+        const std::size_t padding = detail::get_padding(shape(image).at(1).size, bits_per_pixel);
 
-        const auto h = image.shape().at(0).size;
-        const auto w = image.shape().at(1).size;
+        const auto h = shape(image).at(0).size;
+        const auto w = shape(image).at(1).size;
 
         save_header(os, w, h, padding, bits_per_pixel, 256 * 4);
 
@@ -301,10 +301,10 @@ struct save_bitmap_fn
     void operator()(array_ref<const byte, 3> image, std::ostream& os) const
     {
         static const std::size_t bits_per_pixel = 24;
-        const std::size_t padding = detail::get_padding(image.shape().at(1).size, bits_per_pixel);
+        const std::size_t padding = detail::get_padding(shape(image).at(1).size, bits_per_pixel);
 
-        const auto h = image.shape().at(0).size;
-        const auto w = image.shape().at(1).size;
+        const auto h = shape(image).at(0).size;
+        const auto w = shape(image).at(1).size;
 
         save_header(os, w, h, padding, bits_per_pixel, 0);
 

@@ -93,7 +93,7 @@ public:
 
     auto as_const() const -> array_ref<std::add_const_t<T>, D>
     {
-        return { m_ptr, shape() };
+        return { m_ptr, m_shape };
     }
 
     operator array_ref<std::add_const_t<T>, D>() const
@@ -101,26 +101,21 @@ public:
         return as_const();
     }
 
-    const shape_type& shape() const
-    {
-        return m_shape;
-    }
-
     auto begin() const -> iterator
     {
-        return iterator{ m_ptr, shape(), location_t<D>{} };
+        return iterator{ m_ptr, m_shape, location_t<D>{} };
     }
 
     auto end() const -> iterator
     {
         location_t<D> last = {};
         last[D - 1] = m_shape[D - 1].size;
-        return iterator{ m_ptr, shape(), last };
+        return iterator{ m_ptr, m_shape, last };
     }
 
     auto get(const location_type& loc) const -> pointer
     {
-        return static_cast<pointer>(m_ptr + flat_offset(shape(), loc));
+        return static_cast<pointer>(m_ptr + flat_offset(m_shape, loc));
     }
 
     auto operator[](const location_type& loc) const -> reference
@@ -130,7 +125,7 @@ public:
 
     auto slice(const slice_type& slices) const -> array_ref
     {
-        const auto [new_shape, new_loc] = detail::apply_slice(shape(), slices);
+        const auto [new_shape, new_loc] = detail::apply_slice(m_shape, slices);
         return array_ref{ get(new_loc), new_shape };
     }
 
@@ -153,7 +148,6 @@ public:
         std::copy(std::begin(range), std::end(range), begin());
     }
 
-private:
     byte* m_ptr;
     shape_type m_shape;
 };
@@ -178,7 +172,7 @@ public:
 
     array(const size_t<D>& size) : m_shape{ detail::create_shape(size) }, m_data{}
     {
-        m_data.reserve(volume(shape()));
+        m_data.reserve(volume(m_shape));
     }
 
     template <class U>
@@ -187,19 +181,14 @@ public:
         std::copy(other.begin(), other.end(), mut_ref().begin());
     }
 
-    const shape_type& shape() const
-    {
-        return m_shape;
-    }
-
     auto mut_ref() -> mut_ref_type
     {
-        return mut_ref_type{ m_data.data(), shape() };
+        return mut_ref_type{ m_data.data(), m_shape };
     }
 
     auto ref() const -> ref_type
     {
-        return ref_type{ m_data.data(), shape() };
+        return ref_type{ m_data.data(), m_shape };
     }
 
     operator ref_type() const
@@ -207,9 +196,32 @@ public:
         return ref();
     }
 
-private:
     shape_type m_shape;
     data_type m_data;
+};
+
+namespace detail
+{
+
+struct shape_fn
+{
+    template <class T, std::size_t D>
+    auto operator()(const array_ref<T, D>& item) const -> const dim_t<D>&
+    {
+        return item.m_shape;
+    }
+
+    template <class T, std::size_t D>
+    auto operator()(const array<T, D>& item) const -> const dim_t<D>&
+    {
+        return item.m_shape;
+    }
+
+    template <std::size_t D>
+    auto operator()(const dim_t<D>& item) const -> const dim_t<D>&
+    {
+        return item;
+    }
 };
 
 struct make_array_ref_fn
@@ -257,7 +269,10 @@ struct make_array_ref_fn
     }
 };
 
-static constexpr inline auto make_array_ref = make_array_ref_fn{};
+}  // namespace detail
+
+static constexpr inline auto shape = detail::shape_fn{};
+static constexpr inline auto make_array_ref = detail::make_array_ref_fn{};
 
 }  // namespace md
 }  // namespace ferrugo

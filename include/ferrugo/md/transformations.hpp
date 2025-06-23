@@ -41,7 +41,7 @@ struct subslice_fn
         template <class T, std::size_t D, std::enable_if_t<(D > 1), int> = 0>
         auto operator()(const array_ref<T, D>& a) const -> array_ref<T, D - 1>
         {
-            return array_ref<T, D - 1>{ a.get(typename array_ref<T, D>::location_type{}), a.shape().erase(m_dim) };
+            return array_ref<T, D - 1>{ a.get(typename array_ref<T, D>::location_type{}), shape(a).erase(m_dim) };
         }
     };
 
