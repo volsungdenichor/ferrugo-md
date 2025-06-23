@@ -34,15 +34,7 @@ struct lut_t
 
     static auto to_byte(int v) -> byte
     {
-        if (v < 0)
-        {
-            return 0;
-        }
-        if (v > 255)
-        {
-            return 255;
-        }
-        return static_cast<byte>(v);
+        return static_cast<byte>(std::clamp(v, 0, 255));
     }
 
     auto operator()(byte value) const -> byte

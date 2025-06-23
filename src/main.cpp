@@ -99,13 +99,15 @@ int run(const std::vector<std::string_view>& args)
     std::cout << " size " << md::size(img.shape()) << "\n";
     std::cout << " volume " << md::volume(img.shape()) << "\n";
 
-    img.mut_ref().slice({ //
-                          md::slice_base_t{ 105, md::_, 3 },
-                          md::slice_base_t{ 100, md::_, 2 },
-                          md::slice_base_t{ 0, 1 } })
-        = 25;
+    auto reg = img.mut_ref().slice({ //
+                                     md::slice_base_t{ 0, 10 },
+                                     md::slice_base_t{ 0, 20 },
+                                     md::slice_base_t{} });
 
-    img.mut_ref().slice(md::slice_t<3>{ md::slice_base_t{ 10, 15 }, md::slice_base_t{ 50, 60 }, md::slice_base_t{} }) = 0;
+    for (auto loc : md::locations(md::subslice(2)(reg).shape()))
+    {
+        std::cout << loc << " " << reg.slice({ loc[0], loc[1], md::slice_base_t{} }) << "\n";
+    }
 
     md::save_bitmap(img.ref(), directory + "conan_out.bmp");
 
