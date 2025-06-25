@@ -37,17 +37,20 @@ struct subslice_fn
     struct impl
     {
         std::size_t m_dim;
+        location_base_t m_n;
 
         template <class T, std::size_t D, std::enable_if_t<(D > 1), int> = 0>
         auto operator()(const array_ref<T, D>& a) const -> array_ref<T, D - 1>
         {
-            return array_ref<T, D - 1>{ a.get(typename array_ref<T, D>::location_type{}), shape(a).erase(m_dim) };
+            auto loc = typename array_ref<T, D>::location_type{};
+            loc[m_dim] = m_n;
+            return array_ref<T, D - 1>{ a.get(loc), shape(a).erase(m_dim) };
         }
     };
 
-    constexpr auto operator()(std::size_t dim) const -> impl
+    constexpr auto operator()(std::size_t dim, location_base_t n) const -> impl
     {
-        return { dim };
+        return { dim, n };
     }
 };
 

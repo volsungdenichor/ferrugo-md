@@ -104,7 +104,7 @@ int run(const std::vector<std::string_view>& args)
                                      md::slice_base_t{ 0, 20 },
                                      md::slice_base_t{} });
 
-    for (auto loc : md::locations(md::shape(md::subslice(2)(reg))))
+    for (auto loc : md::locations(md::shape(md::subslice(2, 0)(reg))))
     {
         std::cout << loc << " " << reg.slice({ loc[0], loc[1], md::slice_base_t{} }) << "\n";
     }
