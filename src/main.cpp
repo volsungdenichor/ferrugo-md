@@ -155,13 +155,9 @@ int run(const std::vector<std::string_view>& args)
     std::cout << (view | md::shape) << "\n";
     std::cout << (view | md::shape | md::volume) << "\n";
     std::iota(std::begin(view), std::end(view), 100);
-    for (int y = 0; y < md::shape(view)[0].size; ++y)
+    for (int y = 0; y < (view | md::shape | md::size)[0]; ++y)
     {
-        for (int x = 0; x < md::shape(view)[1].size; ++x)
-        {
-            std::cout << view[{ y, x }] << " ";
-        }
-        std::cout << "\n";
+        std::cout << view.slice({ y, md::slice_base_t{} }) << "\n";
     }
 
     std::cout << view[{ -1, -1 }] << "\n";
