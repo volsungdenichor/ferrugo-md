@@ -191,7 +191,7 @@ struct flat_offset_fn
 {
     auto operator()(const dim_base_t& item, const location_base_t& loc) const -> flat_offset_t
     {
-        return loc * item.stride;
+        return (loc >= 0 ? loc : item.size + loc) * item.stride;
     }
 
     template <std::size_t D>

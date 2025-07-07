@@ -116,6 +116,8 @@ int run(const std::vector<std::string_view>& args)
     using namespace std::string_literals;
     namespace md = ferrugo::md;
 
+#if 0
+
     const auto directory = "/mnt/d/Users/Krzysiek/Pictures/"s;
 
     auto img = md::load_bitmap(directory + "conan.bmp");
@@ -147,6 +149,24 @@ int run(const std::vector<std::string_view>& args)
         });
 
     md::save_bitmap(img.ref(), directory + "conan_out.bmp");
+#endif
+    auto matrix = md::array<int, 2>{ md::size_t<2>{ 3, 6 } };
+    auto view = matrix.mut_ref();
+    std::cout << (view | md::shape) << "\n";
+    std::cout << (view | md::shape | md::volume) << "\n";
+    std::iota(std::begin(view), std::end(view), 100);
+    for (int y = 0; y < md::shape(view)[0].size; ++y)
+    {
+        for (int x = 0; x < md::shape(view)[1].size; ++x)
+        {
+            std::cout << view[{ y, x }] << " ";
+        }
+        std::cout << "\n";
+    }
+
+    std::cout << view[{ -1, -1 }] << "\n";
+    std::cout << view.slice({ -1, md::slice_base_t{ -2, {} } }) << "\n";
+    std::cout << view.slice({ md::slice_base_t{ -2, {} }, -1 }) << "\n";
 
     return 0;
 }

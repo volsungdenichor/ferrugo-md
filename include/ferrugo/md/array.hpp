@@ -60,10 +60,9 @@ inline auto apply_slice(const dim_t<D>& dim, const slice_t<D>& slice) -> std::tu
 }
 
 template <std::size_t D>
-auto create_shape(const size_t<D>& size) -> dim_t<D>
+auto create_shape(const size_t<D>& size, location_base_t stride) -> dim_t<D>
 {
     dim_t<D> result = {};
-    location_base_t stride = 1;
     for (int d = D - 1; d >= 0; --d)
     {
         result[d].size = size[d];
@@ -115,7 +114,7 @@ public:
 
     auto get(const location_type& loc) const -> pointer
     {
-        return static_cast<pointer>(m_ptr + flat_offset(m_shape, loc));
+        return reinterpret_cast<pointer>(m_ptr + flat_offset(m_shape, loc));
     }
 
     auto operator[](const location_type& loc) const -> reference
@@ -170,7 +169,7 @@ public:
     {
     }
 
-    array(const size_t<D>& size) : m_shape{ detail::create_shape(size) }, m_data{}
+    array(const size_t<D>& size) : m_shape{ detail::create_shape(size, sizeof(T)) }, m_data{}
     {
         m_data.reserve(volume(m_shape));
     }
