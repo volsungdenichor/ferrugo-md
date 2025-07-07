@@ -102,14 +102,14 @@ public:
 
     auto begin() const -> iterator
     {
-        return iterator{ m_ptr, m_shape, location_t<D>{} };
+        return iterator{ m_ptr, location_iterator<D>{ m_shape, location_t<D>{} } };
     }
 
     auto end() const -> iterator
     {
         location_t<D> last = {};
         last[D - 1] = m_shape[D - 1].size;
-        return iterator{ m_ptr, m_shape, last };
+        return iterator{ m_ptr, location_iterator<D>{ m_shape, last } };
     }
 
     auto get(const location_type& loc) const -> pointer

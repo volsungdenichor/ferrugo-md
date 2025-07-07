@@ -14,42 +14,27 @@ template <class T, std::size_t D>
 struct element_iter
 {
     byte* m_ptr;
-    dim_t<D> m_shape;
-    location_t<D> m_loc;
+    location_iterator<D> m_inner;
 
     element_iter() = default;
 
-    element_iter(byte* ptr, dim_t<D> shape, location_t<D> loc)
-        : m_ptr{ ptr }
-        , m_shape{ std::move(shape) }
-        , m_loc{ std::move(loc) }
+    element_iter(byte* ptr, location_iterator<D> inner) : m_ptr{ ptr }, m_inner{ std::move(inner) }
     {
     }
 
     auto deref() const -> T&
     {
-        byte* ptr = (m_ptr + flat_offset(m_shape, m_loc));
-        return *(T*)ptr;
+        return *(T*)(m_ptr + flat_offset(m_inner.m_impl.m_shape, m_inner.m_impl.m_loc));
     }
 
     auto is_equal(const element_iter& other) const -> bool
     {
-        return m_loc == other.m_loc;
+        return m_inner == other.m_inner;
     }
 
     void inc()
     {
-        inc(0);
-    }
-
-    void inc(std::size_t d)
-    {
-        ++m_loc[d];
-        if (m_loc[d] == m_shape[d].size && (d + 1 < D))
-        {
-            m_loc[d] = 0;
-            inc(d + 1);
-        }
+        ++m_inner;
     }
 };
 
