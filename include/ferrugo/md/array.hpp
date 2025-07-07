@@ -271,7 +271,7 @@ struct make_array_ref_fn
 
 }  // namespace detail
 
-static constexpr inline auto shape = detail::shape_fn{};
+static constexpr inline auto shape = adaptable<detail::shape_fn>{};
 static constexpr inline auto make_array_ref = detail::make_array_ref_fn{};
 
 }  // namespace md

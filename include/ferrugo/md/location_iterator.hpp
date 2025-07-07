@@ -75,7 +75,7 @@ struct iterate_locations_fn
 }  // namespace detail
 
 using detail::location_iterator;
-static constexpr inline auto locations = detail::iterate_locations_fn{};
+static constexpr inline auto locations = adaptable<detail::iterate_locations_fn>{};
 
 }  // namespace md
 }  // namespace ferrugo

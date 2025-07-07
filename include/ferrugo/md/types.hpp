@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <optional>
 #include <sstream>
@@ -11,6 +12,27 @@ namespace ferrugo
 {
 namespace md
 {
+
+template <class Impl>
+struct adaptable
+{
+    Impl m_impl;
+
+    template <class T>
+    auto operator()(T&& item) const -> std::invoke_result_t<Impl, T>
+    {
+        return std::invoke(m_impl, std::forward<T>(item));
+    }
+
+    template <class T>
+    friend auto operator|(T&& item, const adaptable& self) -> std::invoke_result_t<Impl, T>
+    {
+        return self(std::forward<T>(item));
+    }
+};
+
+template <class Impl>
+adaptable(Impl&&) -> adaptable<std::decay_t<Impl>>;
 
 template <class... Args>
 auto str(Args&&... args) -> std::string

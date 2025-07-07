@@ -26,7 +26,7 @@ struct swap_axes_fn
         }
     };
 
-    constexpr auto operator()(std::size_t a, std::size_t b) const -> impl
+    constexpr auto operator()(std::size_t a, std::size_t b) const -> adaptable<impl>
     {
         return { a, b };
     }
@@ -48,9 +48,27 @@ struct subslice_fn
         }
     };
 
-    constexpr auto operator()(std::size_t dim, location_base_t n) const -> impl
+    template <std::size_t Dim>
+    struct impl_1d
+    {
+        location_t<Dim> m_loc;
+
+        template <class T, std::size_t D, std::enable_if_t<(Dim + 1 == D), int> = 0>
+        auto operator()(const array_ref<T, D>& a) const -> array_ref<T, 1>
+        {
+            return array_ref<T, 1>{ a.get(m_loc.push_back(0)), shape(a).back() };
+        }
+    };
+
+    constexpr auto operator()(std::size_t dim, location_base_t n) const -> adaptable<impl>
     {
         return { dim, n };
+    }
+
+    template <std::size_t D>
+    constexpr auto operator()(location_t<D> loc) const -> adaptable<impl_1d<D>>
+    {
+        return { std::move(loc) };
     }
 };
 

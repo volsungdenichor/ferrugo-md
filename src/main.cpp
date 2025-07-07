@@ -84,6 +84,33 @@ std::ostream& operator<<(std::ostream& os, const array_ref<T, N> item)
 }  // namespace md
 }  // namespace ferrugo
 
+static constexpr inline struct let_fn
+{
+    template <class Func>
+    constexpr auto operator()(Func&& func) const -> std::invoke_result_t<Func>
+    {
+        return std::invoke(std::forward<Func>(func));
+    }
+
+    template <class A0, class Func>
+    constexpr auto operator()(A0&& a0, Func&& func) const -> std::invoke_result_t<Func, A0>
+    {
+        return std::invoke(std::forward<Func>(func), std::forward<A0>(a0));
+    }
+
+    template <class A0, class A1, class Func>
+    constexpr auto operator()(A0&& a0, A1&& a1, Func&& func) const -> std::invoke_result_t<Func, A0, A1>
+    {
+        return std::invoke(std::forward<Func>(func), std::forward<A0>(a0), std::forward<A1>(a1));
+    }
+
+    template <class A0, class A1, class A2, class Func>
+    constexpr auto operator()(A0&& a0, A1&& a1, A2&& a2, Func&& func) const -> std::invoke_result_t<Func, A0, A1, A2>
+    {
+        return std::invoke(std::forward<Func>(func), std::forward<A0>(a0), std::forward<A1>(a1), std::forward<A2>(a2));
+    }
+} let;
+
 int run(const std::vector<std::string_view>& args)
 {
     using namespace std::string_literals;
@@ -93,21 +120,31 @@ int run(const std::vector<std::string_view>& args)
 
     auto img = md::load_bitmap(directory + "conan.bmp");
 
-    std::cout << " shape " << md::shape(img) << "\n";
-    std::cout << " extents " << md::extents(md::shape(img)) << "\n";
-    std::cout << " bounds " << md::bounds(md::shape(img)) << "\n";
-    std::cout << " size " << md::size(md::shape(img)) << "\n";
-    std::cout << " volume " << md::volume(md::shape(img)) << "\n";
+    let(img.mut_ref(),
+        [](md::array_ref<md::byte, 3> ref)
+        {
+            let(md::shape(ref),
+                [](auto shape)
+                {
+                    std::cout << " shape " << shape << "\n";
+                    std::cout << " extents " << (shape | md::extents) << "\n";
+                    std::cout << " bounds " << (shape | md::bounds) << "\n";
+                    std::cout << " size " << (shape | md::size) << "\n";
+                    std::cout << " volume " << (shape | md::volume) << "\n";
+                });
 
-    auto reg = img.mut_ref().slice({ //
-                                     md::slice_base_t{ 0, 10 },
-                                     md::slice_base_t{ 0, 20 },
-                                     md::slice_base_t{} });
-
-    for (auto loc : md::locations(md::shape(md::subslice(2, 0)(reg))))
-    {
-        std::cout << loc << " " << reg.slice({ loc[0], loc[1], md::slice_base_t{} }) << "\n";
-    }
+            let(ref.slice({ //
+                            md::slice_base_t{ 0, 10 },
+                            md::slice_base_t{ 0, 20 },
+                            md::slice_base_t{} }),
+                [](auto region)
+                {
+                    for (const auto loc : region | md::subslice(2, 0) | md::shape | md::locations)
+                    {
+                        std::cout << loc << " " << (region | md::subslice(loc)) << "\n";
+                    }
+                });
+        });
 
     md::save_bitmap(img.ref(), directory + "conan_out.bmp");
 

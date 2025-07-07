@@ -243,12 +243,12 @@ struct volume_fn
 
 }  // namespace detail
 
-static constexpr inline auto extents = detail::extents_fn{};
-static constexpr inline auto size = detail::size_fn{};
-static constexpr inline auto stride = detail::stride_fn{};
-static constexpr inline auto bounds = detail::bounds_fn{};
-static constexpr inline auto contains = detail::contains_fn{};
-static constexpr inline auto volume = detail::volume_fn{};
+static constexpr inline auto extents = adaptable<detail::extents_fn>{};
+static constexpr inline auto size = adaptable<detail::size_fn>{};
+static constexpr inline auto stride = adaptable<detail::stride_fn>{};
+static constexpr inline auto bounds = adaptable<detail::bounds_fn>{};
+static constexpr inline auto contains = adaptable<detail::contains_fn>{};
+static constexpr inline auto volume = adaptable<detail::volume_fn>{};
 static constexpr inline auto flat_offset = detail::flat_offset_fn{};
 
 }  // namespace md
